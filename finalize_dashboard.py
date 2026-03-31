@@ -5,10 +5,55 @@ Inject SMS data into enriched facilities and build the final HTML dashboard.
 import json, re
 from datetime import date
 
-# ─── SMS data from today (2026-03-29) — סשן sms4free פג, נתוני SMS לא זמינים ────
-DAILY_CHECK = {}
+# ─── SMS data from today (2026-03-31) — עדכון אוטומטי ────────────────────────
+DAILY_CHECK = {
+    'ד"א גן יבנה':            '06:17',
+    'מט"ש צפע':               '07:20',
+    'אשלג סדום 2':            '07:57',
+    'אבנת':                   '08:00',
+    'רותם תעשיות':            '08:00',
+    'נטועה':                  '08:00',
+    'אפרסמור':                '08:00',
+    'קיבוץ בית הערבה':       '08:00',
+    'בית אריזה ערבה':        '08:00',
+    'צומת הלידו':             '08:00',
+    'אשלים B':                '08:00',
+    'סונול שדה עמודים':      '08:00',
+    'חאן שער הגיא':          '08:00',
+    'אלמוג 2':                '08:00',
+    'פז סילבר':               '08:00',
+    'שתיל נטו':               '08:00',
+    'אורים':                  '08:00',
+    'אלמוג 1':                '08:00',
+    'חוף קליה':               '08:00',
+    'גיתה':                   '08:00',
+    'עבדת':                   '08:00',
+    'ממשית':                  '08:00',
+    'חניון בארות':            '08:01',
+    'פז השקמה':               '08:01',
+    'אקוסול':                 '08:01',
+}
 
-OPEN_ALERTS = {}
+OPEN_ALERTS = {
+    'מט"ש צפע': [
+        {'content': 'תקלה במשאבת קולחים', 'time': '07:21'},
+        {'content': 'מפלס גובה יתר במיכל איגום קולחים עילי', 'time': '07:22'},
+    ],
+    'אלמוג 2': [
+        {'content': 'תקלה במערבל 2', 'time': '08:01'},
+    ],
+    'ניר יצחק': [
+        {'content': 'התראת מתח רשת', 'time': '11:59'},
+    ],
+}
+
+# רשימת התראות פתוחות מפורטת (לטאב הריכוז)
+OPEN_ALERTS_SUMMARY = [
+    {'facility': 'ניר יצחק',   'content': 'התראת מתח רשת',                                       'firstDate': '29.03.2026', 'lastTime': '11:59', 'daysOpen': 2},
+    {'facility': 'מט"ש צפע',  'content': 'מפלס גובה יתר פסק במיכל איגום קולחים עילי',           'firstDate': '30.03.2026', 'lastTime': '18:02', 'daysOpen': 1},
+    {'facility': 'מט"ש צפע',  'content': 'תקלה במשאבת קולחים',                                   'firstDate': '30.03.2026', 'lastTime': '07:21', 'daysOpen': 1},
+    {'facility': 'אלמוג 2',    'content': 'תקלה במערבל 2',                                        'firstDate': '31.03.2026', 'lastTime': '08:01', 'daysOpen': 0},
+]
 
 ALL_MONITORED = {
     'שתיל נטו','מעלה עמוס - מתקן זמני','ממשית','גיתה','בית אריזה ערבה',
@@ -59,7 +104,7 @@ def match_sms(sms_name, dash_name):
 
 # ─── Load facilities ──────────────────────────────────────────────────────────
 import os as _os
-TMP = '/tmp'
+TMP = '/tmp/epc_work'
 _DASH_DIR = _os.path.dirname(_os.path.abspath(__file__))
 fac = json.load(open(f'{TMP}/all_facilities_enriched.json'))
 
@@ -190,6 +235,23 @@ body{{background:#07111c;color:#c8dff0;font-family:'Segoe UI',Arial,sans-serif;m
 .sms-alert-time{{font-size:0.68rem;color:#7a3030;margin-top:2px}}
 .no-data{{color:#2a5a7a;text-align:center;padding:24px;font-size:0.85rem}}
 .modal-source{{font-size:0.68rem;color:#2a5a7a;text-align:center;padding:6px;border-top:1px solid #1a3347;margin-top:4px}}
+/* ── Alerts tab ── */
+.alert-tab-badge{{display:inline-block;background:#7a1010;color:#ffaaaa;font-size:0.65rem;font-weight:700;border-radius:9px;padding:0px 6px;margin-right:4px;vertical-align:middle}}
+.alerts-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:16px}}
+.alert-card{{background:#0d1c2a;border:1px solid #1a3347;border-radius:12px;padding:14px;border-right:4px solid #ff4444;transition:.2s}}
+.alert-card:hover{{border-color:#3a6a8a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.4)}}
+.alert-card.days-2plus{{border-right-color:#ff4444}}
+.alert-card.days-1{{border-right-color:#ffaa33}}
+.alert-card.days-0{{border-right-color:#44cc88}}
+.alert-facility{{font-size:1rem;font-weight:700;color:#e8f4ff;margin-bottom:6px}}
+.alert-content{{font-size:0.85rem;color:#ffcccc;margin-bottom:10px;line-height:1.5}}
+.alert-meta{{display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;color:#4a7a9b;border-top:1px solid #1a3347;padding-top:8px;margin-top:4px}}
+.alert-days-badge{{padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:700}}
+.badge-days-crit{{background:#3a0a0a;color:#ff6b6b}}
+.badge-days-warn{{background:#2a1800;color:#ffaa33}}
+.badge-days-today{{background:#0a2a1a;color:#44cc88}}
+.alerts-summary{{padding:10px 16px;font-size:0.82rem;color:#4a7a9b;display:flex;gap:16px;align-items:center}}
+.no-alerts{{text-align:center;padding:48px 24px;color:#2a5a7a;font-size:1rem}}
 /* ── Table view (gears/blades tabs) ── */
 #table-wrap{{padding:14px 16px;overflow-x:auto}}
 #data-table{{width:100%;border-collapse:collapse;font-size:0.8rem}}
@@ -205,6 +267,7 @@ body{{background:#07111c;color:#c8dff0;font-family:'Segoe UI',Arial,sans-serif;m
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
+  <div class="tab" onclick="switchTab('alerts')">🚨 התראות פתוחות{' <span class="alert-tab-badge">'+str(len(OPEN_ALERTS_SUMMARY))+'</span>' if OPEN_ALERTS_SUMMARY else ''}</div>
   <div class="tab" onclick="switchTab('gears')">⚙️ מגרזות/משמנות</div>
   <div class="tab" onclick="switchTab('blades')">🔧 להבי מדחס</div>
   <div class="tab" onclick="switchTab('viols')">🔬 חריגות דיגומים</div>
@@ -217,6 +280,12 @@ body{{background:#07111c;color:#c8dff0;font-family:'Segoe UI',Arial,sans-serif;m
 <!-- Facilities grid -->
 <div id="fac-view">
   <div class="grid" id="grid"></div>
+</div>
+
+<!-- Alerts view -->
+<div id="alerts-view" style="display:none">
+  <div class="alerts-summary" id="alerts-summary"></div>
+  <div class="alerts-grid" id="alerts-grid"></div>
 </div>
 
 <!-- Table view for other tabs -->
@@ -277,6 +346,7 @@ body{{background:#07111c;color:#c8dff0;font-family:'Segoe UI',Arial,sans-serif;m
 
 <script>
 const FAC = {fac_json};
+const OPEN_ALERTS = {json.dumps(OPEN_ALERTS_SUMMARY, ensure_ascii=False)};
 
 let doCI=null,flCI=null,curTab='facilities';
 
@@ -287,18 +357,50 @@ function statusBadge(s){{const m={{'צריך להחליף':'badge-red','צריך
 
 function switchTab(tab){{
   curTab=tab;
-  document.querySelectorAll('.tab').forEach((t,i)=>{{t.classList.toggle('active',['facilities','gears','blades','viols'][i]===tab);}});
+  document.querySelectorAll('.tab').forEach((t,i)=>{{t.classList.toggle('active',['facilities','alerts','gears','blades','viols'][i]===tab);}});
   document.getElementById('fac-view').style.display=tab==='facilities'?'':'none';
-  document.getElementById('table-wrap').style.display=tab!=='facilities'?'':'none';
+  document.getElementById('alerts-view').style.display=tab==='alerts'?'':'none';
+  document.getElementById('table-wrap').style.display=(tab!=='facilities'&&tab!=='alerts')?'':'none';
   renderTab();
 }}
 
 function renderTab(){{
   const q=(document.getElementById('search').value||'').trim();
   if(curTab==='facilities') renderFacilities(q);
+  else if(curTab==='alerts') renderAlerts(q);
   else if(curTab==='gears') renderGears(q);
   else if(curTab==='blades') renderBlades(q);
   else if(curTab==='viols') renderViols(q);
+}}
+
+function renderAlerts(q){{
+  const filtered=OPEN_ALERTS.filter(a=>!q||a.facility.includes(q)||a.content.includes(q));
+  const crit=filtered.filter(a=>a.daysOpen>=2).length;
+  const warn=filtered.filter(a=>a.daysOpen===1).length;
+  const today=filtered.filter(a=>a.daysOpen===0).length;
+  document.getElementById('alerts-summary').innerHTML=
+    `<span style="color:#aac8e0;font-weight:600">${{filtered.length}} התראות פתוחות</span>
+     <span class="stat-badge sb-crit">🔴 ממושכות: ${{crit}}</span>
+     <span class="stat-badge sb-warn">🟡 אתמול: ${{warn}}</span>
+     <span class="stat-badge sb-ok">🟢 היום: ${{today}}</span>`;
+  if(!filtered.length){{
+    document.getElementById('alerts-grid').innerHTML='<div class="no-alerts" style="grid-column:1/-1">✅ אין התראות פתוחות כרגע</div>';
+    return;
+  }}
+  document.getElementById('alerts-grid').innerHTML=filtered.map(a=>{{
+    let cls,badge,label;
+    if(a.daysOpen>=2){{cls='days-2plus';badge='badge-days-crit';label=`🔴 ${{a.daysOpen}} ימים`;}}
+    else if(a.daysOpen===1){{cls='days-1';badge='badge-days-warn';label='🟡 אתמול';}}
+    else{{cls='days-0';badge='badge-days-today';label='🟢 היום';}}
+    return`<div class="alert-card ${{cls}}">
+      <div class="alert-facility">📍 ${{a.facility}}</div>
+      <div class="alert-content">⚠ ${{a.content}}</div>
+      <div class="alert-meta">
+        <span>פתוח מ: ${{a.firstDate}}</span>
+        <span class="alert-days-badge ${{badge}}">${{label}}</span>
+      </div>
+    </div>`;
+  }}).join('');
 }}
 
 function renderFacilities(q){{
