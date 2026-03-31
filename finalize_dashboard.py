@@ -156,108 +156,109 @@ HTML = f'''<!DOCTYPE html>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
-body{{background:#07111c;color:#c8dff0;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;direction:rtl}}
+body{{background:#eef2f7;color:#1e3a52;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;direction:rtl}}
 /* ── Header ── */
-.header{{background:linear-gradient(135deg,#0d1c2a 0%,#112233 100%);border-bottom:1px solid #1a3347;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}}
-.logo{{font-size:1.1rem;font-weight:700;color:#5bc4ff;letter-spacing:.5px}}
-.header-date{{font-size:0.75rem;color:#4a7a9b}}
+.header{{background:linear-gradient(135deg,#1a4a72 0%,#1e6099 100%);border-bottom:1px solid #1557a0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(20,60,100,.25)}}
+.logo{{font-size:1.1rem;font-weight:700;color:#ffffff;letter-spacing:.5px}}
+.header-date{{font-size:0.75rem;color:#a8d4f5}}
 /* ── Tabs ── */
-.tabs{{display:flex;gap:4px;padding:12px 16px 0;background:#07111c;border-bottom:1px solid #1a3347;overflow-x:auto}}
-.tab{{padding:8px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-size:0.82rem;color:#4a7a9b;border:1px solid transparent;border-bottom:none;white-space:nowrap;transition:.2s}}
-.tab.active{{background:#0d1c2a;color:#5bc4ff;border-color:#1a3347;font-weight:600}}
-.tab:hover:not(.active){{color:#7ab8d8;background:#0a1820}}
+.tabs{{display:flex;gap:4px;padding:12px 16px 0;background:#dde5ef;border-bottom:2px solid #b8cfe4;overflow-x:auto}}
+.tab{{padding:8px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-size:0.82rem;color:#4a7a9b;border:1px solid transparent;border-bottom:none;white-space:nowrap;transition:.2s;background:#ccd9e8}}
+.tab.active{{background:#ffffff;color:#1a5a99;border-color:#b8cfe4;border-bottom-color:#ffffff;font-weight:700;box-shadow:0 -2px 6px rgba(0,0,0,.06)}}
+.tab:hover:not(.active){{color:#1a5a99;background:#ddeeff}}
 /* ── Toolbar ── */
-.toolbar{{padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#07111c}}
-#search{{background:#0d1c2a;border:1px solid #1a3347;color:#c8dff0;padding:6px 12px;border-radius:8px;font-size:0.82rem;width:200px;direction:rtl}}
+.toolbar{{padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f5f8fc;border-bottom:1px solid #dde5ef}}
+#search{{background:#ffffff;border:1px solid #b8cfe4;color:#1e3a52;padding:6px 12px;border-radius:8px;font-size:0.82rem;width:200px;direction:rtl;box-shadow:inset 0 1px 3px rgba(0,0,0,.06)}}
+#search:focus{{outline:none;border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.15)}}
 .stat-badge{{padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;margin-right:4px}}
-.sb-crit{{background:#3d1010;color:#ff6b6b}}.sb-warn{{background:#2a1800;color:#ffaa33}}.sb-ok{{background:#0a2a1a;color:#44cc88}}
+.sb-crit{{background:#fde8e8;color:#c0392b;border:1px solid #f5b7b1}}.sb-warn{{background:#fef6e4;color:#d68910;border:1px solid #f9e0a0}}.sb-ok{{background:#e8f8f0;color:#1a8a4a;border:1px solid #a9dfbf}}
 /* ── Grid ── */
 .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding:14px 16px}}
 /* ── Card ── */
-.card{{background:#0d1c2a;border:1px solid #1a3347;border-radius:12px;padding:12px;cursor:pointer;transition:.2s;position:relative}}
-.card:hover{{border-color:#2a5a7a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.4)}}
-.card.critical{{border-right:3px solid #ff4444}}.card.warn{{border-right:3px solid #ffaa33}}.card.ok{{border-right:3px solid #44cc88}}
+.card{{background:#ffffff;border:1px solid #cdd8e8;border-radius:12px;padding:12px;cursor:pointer;transition:.2s;position:relative;box-shadow:0 1px 4px rgba(30,58,82,.07)}}
+.card:hover{{border-color:#4a90d9;transform:translateY(-2px);box-shadow:0 6px 16px rgba(30,82,140,.13)}}
+.card.critical{{border-right:4px solid #e74c3c}}.card.warn{{border-right:4px solid #e67e22}}.card.ok{{border-right:4px solid #27ae60}}
 .card-header{{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}}
-.card-name{{font-weight:700;font-size:0.9rem;color:#e8f4ff;flex:1}}
-.type-badge{{font-size:0.62rem;background:#1a3347;color:#4a8aaa;padding:2px 6px;border-radius:8px;white-space:nowrap;margin-right:6px}}
+.card-name{{font-weight:700;font-size:0.9rem;color:#1a3a5c;flex:1}}
+.type-badge{{font-size:0.62rem;background:#e8f0fa;color:#3a6aaa;padding:2px 6px;border-radius:8px;white-space:nowrap;margin-right:6px;border:1px solid #c0d0e8}}
 .card-metrics{{display:flex;gap:8px;margin-bottom:8px}}
-.metric{{flex:1;text-align:center;background:#0a1820;border-radius:8px;padding:6px 4px}}
-.metric-label{{font-size:0.62rem;color:#3a6080;margin-bottom:3px}}
-.metric-value{{font-size:0.92rem;font-weight:600;color:#c8dff0}}
-.do-ok{{color:#44cc88}}.do-low{{color:#ffaa33}}.do-zero{{color:#ff6b6b}}
+.metric{{flex:1;text-align:center;background:#f0f5fb;border-radius:8px;padding:6px 4px;border:1px solid #dde5ef}}
+.metric-label{{font-size:0.62rem;color:#7a9ab8;margin-bottom:3px}}
+.metric-value{{font-size:0.92rem;font-weight:600;color:#1e3a52}}
+.do-ok{{color:#27ae60}}.do-low{{color:#e67e22}}.do-zero{{color:#e74c3c}}
 .card-tags{{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}}
-.tag{{font-size:0.68rem;padding:2px 7px;border-radius:10px;border:1px solid #1a3347}}
-.tag-gear-ok{{background:#1a2a1a;color:#44cc88;border-color:#1a4a2a}}
-.tag-gear-bad{{background:#2a1010;color:#ff8888;border-color:#4a1a1a}}
-.tag-blade-ok{{background:#1a1a2a;color:#8888ff;border-color:#2a2a4a}}
-.tag-blade-bad{{background:#2a1510;color:#ff9944;border-color:#4a2a1a}}
-.tag-viol{{background:#2a1a0a;color:#ffcc44;border-color:#4a3a1a}}
-.tag-sms{{background:#3a0a0a;color:#ff7070;border-color:#7a2020}}
-.issues-preview{{font-size:0.72rem;color:#4a7a9b;background:#081420;border-radius:6px;padding:5px 8px;margin-bottom:8px}}
-.issues-preview div{{border-bottom:1px solid #0d1c2a;padding:2px 0}}.issues-preview div:last-child{{border:none}}
-.card-footer{{display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;color:#2a5a7a;border-top:1px solid #0a1820;padding-top:6px;margin-top:4px}}
+.tag{{font-size:0.68rem;padding:2px 7px;border-radius:10px;border:1px solid #cdd8e8}}
+.tag-gear-ok{{background:#e8f8f0;color:#1a8a4a;border-color:#a9dfbf}}
+.tag-gear-bad{{background:#fdecea;color:#c0392b;border-color:#f5b7b1}}
+.tag-blade-ok{{background:#ede8ff;color:#5a3aaa;border-color:#c8b8f0}}
+.tag-blade-bad{{background:#fff3e8;color:#d35400;border-color:#f8c599}}
+.tag-viol{{background:#fef9e4;color:#b7770d;border-color:#f5d98c}}
+.tag-sms{{background:#fdecea;color:#c0392b;border-color:#f5b7b1}}
+.issues-preview{{font-size:0.72rem;color:#4a7a9b;background:#f5f8fc;border-radius:6px;padding:5px 8px;margin-bottom:8px;border:1px solid #dde5ef}}
+.issues-preview div{{border-bottom:1px solid #e8eef5;padding:2px 0}}.issues-preview div:last-child{{border:none}}
+.card-footer{{display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;color:#7a9ab8;border-top:1px solid #e8eef5;padding-top:6px;margin-top:4px}}
 /* ── Daily status badges ── */
-.dly-ok{{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;color:#44cc88;background:#0a2a1a;border:1px solid #1a5a35;border-radius:10px;padding:1px 7px}}
-.dly-no{{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;color:#ff9944;background:#2a1500;border:1px solid #7a3a00;border-radius:10px;padding:1px 7px}}
+.dly-ok{{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;color:#1a8a4a;background:#e8f8f0;border:1px solid #a9dfbf;border-radius:10px;padding:1px 7px}}
+.dly-no{{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;color:#d35400;background:#fff3e8;border:1px solid #f8c599;border-radius:10px;padding:1px 7px}}
 /* ── Modal ── */
-.overlay{{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}}
+.overlay{{display:none;position:fixed;inset:0;background:rgba(10,30,60,.5);z-index:100;align-items:center;justify-content:center;padding:16px}}
 .overlay.open{{display:flex}}
-.modal{{background:#0d1c2a;border:1px solid #2a4a62;border-radius:16px;width:100%;max-width:1040px;max-height:94vh;overflow-y:auto}}
-.modal-header{{padding:16px 22px 11px;border-bottom:1px solid #1a3347;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#0d1c2a;z-index:10;border-radius:16px 16px 0 0}}
-.modal-title{{font-size:1.25rem;font-weight:700;color:#e8f4ff}}
-.modal-close{{background:none;border:none;color:#4a7a9b;font-size:1.5rem;cursor:pointer;padding:4px 10px;border-radius:6px}}
-.modal-close:hover{{color:#ff6b6b}}
+.modal{{background:#ffffff;border:1px solid #b8cfe4;border-radius:16px;width:100%;max-width:1040px;max-height:94vh;overflow-y:auto;box-shadow:0 16px 40px rgba(10,30,80,.18)}}
+.modal-header{{padding:16px 22px 11px;border-bottom:1px solid #dde5ef;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#ffffff;z-index:10;border-radius:16px 16px 0 0}}
+.modal-title{{font-size:1.25rem;font-weight:700;color:#1a3a5c}}
+.modal-close{{background:none;border:none;color:#7a9ab8;font-size:1.5rem;cursor:pointer;padding:4px 10px;border-radius:6px}}
+.modal-close:hover{{color:#e74c3c;background:#fdecea}}
 .modal-body{{padding:16px 22px}}
 /* modal sections */
 .modal-section{{margin-bottom:16px}}
-.section-title{{font-size:0.87rem;color:#5bc4ff;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #1a3347;display:flex;align-items:center;gap:6px}}
+.section-title{{font-size:0.87rem;color:#1a5a99;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid #e0eaf5;display:flex;align-items:center;gap:6px;font-weight:600}}
 .metrics-row{{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}}
-.metric-big{{background:#081420;border-radius:10px;padding:10px 14px;min-width:110px;text-align:center}}
-.metric-big .label{{font-size:0.7rem;color:#3a6080;margin-bottom:4px}}
-.metric-big .value{{font-size:1.05rem;font-weight:600;color:#c8dff0}}
+.metric-big{{background:#f0f5fb;border-radius:10px;padding:10px 14px;min-width:110px;text-align:center;border:1px solid #dde5ef}}
+.metric-big .label{{font-size:0.7rem;color:#7a9ab8;margin-bottom:4px}}
+.metric-big .value{{font-size:1.05rem;font-weight:600;color:#1e3a52}}
 .charts-row{{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}}
-.chart-box{{background:#081420;border-radius:10px;padding:10px;height:180px}}
+.chart-box{{background:#f8fafd;border-radius:10px;padding:10px;height:180px;border:1px solid #dde5ef}}
 .chart-title{{font-size:0.75rem;color:#4a7a9b;margin-bottom:6px;text-align:center}}
 .badge{{padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600}}
-.badge-green{{background:#0a2a1a;color:#44cc88}}.badge-red{{background:#3d1010;color:#ff6b6b}}
-.badge-orange{{background:#3d2a00;color:#ffaa33}}.badge-blue{{background:#0a1a3d;color:#5bc4ff}}
-.badge-grey{{background:#1a2a3a;color:#6a9ab0}}
+.badge-green{{background:#e8f8f0;color:#1a8a4a}}.badge-red{{background:#fdecea;color:#c0392b}}
+.badge-orange{{background:#fff3e8;color:#d35400}}.badge-blue{{background:#e8f0fb;color:#1a5aaa}}
+.badge-grey{{background:#eef2f7;color:#5a7a9a}}
 .mini-table{{width:100%;border-collapse:collapse;font-size:0.78rem}}
-.mini-table th{{background:#081420;color:#4a7a9b;padding:5px 8px;text-align:right;font-weight:600}}
-.mini-table td{{padding:5px 8px;border-bottom:1px solid #0d1c2a;color:#aac8e0}}
-.mini-table tr:hover td{{background:#0a1820}}
-.tag-routine{{color:#44cc88}}.tag-urgent{{color:#ff6b6b}}.tag-other{{color:#aac8e0}}
-.gear-row{{background:#081420;border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:0.8rem}}
-.blade-row{{background:#081420;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem}}
-.open-issue{{background:#081420;border-right:3px solid #3a6080;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem}}
-.sms-alert{{background:#1a0a0a;border-right:3px solid #ff4444;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem}}
-.sms-alert-content{{color:#ffcccc;font-weight:500}}
-.sms-alert-time{{font-size:0.68rem;color:#7a3030;margin-top:2px}}
-.no-data{{color:#2a5a7a;text-align:center;padding:24px;font-size:0.85rem}}
-.modal-source{{font-size:0.68rem;color:#2a5a7a;text-align:center;padding:6px;border-top:1px solid #1a3347;margin-top:4px}}
+.mini-table th{{background:#f0f5fb;color:#4a7a9b;padding:6px 8px;text-align:right;font-weight:600;border-bottom:2px solid #dde5ef}}
+.mini-table td{{padding:5px 8px;border-bottom:1px solid #eef2f7;color:#2a4a6a}}
+.mini-table tr:hover td{{background:#f5f8fc}}
+.tag-routine{{color:#1a8a4a}}.tag-urgent{{color:#c0392b}}.tag-other{{color:#4a7a9b}}
+.gear-row{{background:#f5f8fc;border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;border:1px solid #e0eaf5}}
+.blade-row{{background:#f5f8fc;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem;border:1px solid #e0eaf5}}
+.open-issue{{background:#f5f8fc;border-right:3px solid #4a90d9;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem}}
+.sms-alert{{background:#fef5f5;border-right:3px solid #e74c3c;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem;border:1px solid #f5c6c6}}
+.sms-alert-content{{color:#c0392b;font-weight:500}}
+.sms-alert-time{{font-size:0.68rem;color:#a04040;margin-top:2px}}
+.no-data{{color:#7a9ab8;text-align:center;padding:24px;font-size:0.85rem}}
+.modal-source{{font-size:0.68rem;color:#9ab8cc;text-align:center;padding:6px;border-top:1px solid #e8eef5;margin-top:4px}}
 /* ── Alerts tab ── */
-.alert-tab-badge{{display:inline-block;background:#7a1010;color:#ffaaaa;font-size:0.65rem;font-weight:700;border-radius:9px;padding:0px 6px;margin-right:4px;vertical-align:middle}}
+.alert-tab-badge{{display:inline-block;background:#c0392b;color:#ffffff;font-size:0.65rem;font-weight:700;border-radius:9px;padding:0px 6px;margin-right:4px;vertical-align:middle}}
 .alerts-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:16px}}
-.alert-card{{background:#0d1c2a;border:1px solid #1a3347;border-radius:12px;padding:14px;border-right:4px solid #ff4444;transition:.2s}}
-.alert-card:hover{{border-color:#3a6a8a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.4)}}
-.alert-card.days-2plus{{border-right-color:#ff4444}}
-.alert-card.days-1{{border-right-color:#ffaa33}}
-.alert-card.days-0{{border-right-color:#44cc88}}
-.alert-facility{{font-size:1rem;font-weight:700;color:#e8f4ff;margin-bottom:6px}}
-.alert-content{{font-size:0.85rem;color:#ffcccc;margin-bottom:10px;line-height:1.5}}
-.alert-meta{{display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;color:#4a7a9b;border-top:1px solid #1a3347;padding-top:8px;margin-top:4px}}
+.alert-card{{background:#ffffff;border:1px solid #cdd8e8;border-radius:12px;padding:14px;border-right:4px solid #e74c3c;transition:.2s;box-shadow:0 1px 4px rgba(30,58,82,.07)}}
+.alert-card:hover{{border-color:#4a90d9;transform:translateY(-2px);box-shadow:0 6px 16px rgba(30,82,140,.13)}}
+.alert-card.days-2plus{{border-right-color:#e74c3c}}
+.alert-card.days-1{{border-right-color:#e67e22}}
+.alert-card.days-0{{border-right-color:#27ae60}}
+.alert-facility{{font-size:1rem;font-weight:700;color:#1a3a5c;margin-bottom:6px}}
+.alert-content{{font-size:0.85rem;color:#c0392b;margin-bottom:10px;line-height:1.5}}
+.alert-meta{{display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;color:#7a9ab8;border-top:1px solid #eef2f7;padding-top:8px;margin-top:4px}}
 .alert-days-badge{{padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:700}}
-.badge-days-crit{{background:#3a0a0a;color:#ff6b6b}}
-.badge-days-warn{{background:#2a1800;color:#ffaa33}}
-.badge-days-today{{background:#0a2a1a;color:#44cc88}}
-.alerts-summary{{padding:10px 16px;font-size:0.82rem;color:#4a7a9b;display:flex;gap:16px;align-items:center}}
-.no-alerts{{text-align:center;padding:48px 24px;color:#2a5a7a;font-size:1rem}}
+.badge-days-crit{{background:#fdecea;color:#c0392b;border:1px solid #f5b7b1}}
+.badge-days-warn{{background:#fef6e4;color:#d68910;border:1px solid #f9e0a0}}
+.badge-days-today{{background:#e8f8f0;color:#1a8a4a;border:1px solid #a9dfbf}}
+.alerts-summary{{padding:10px 16px;font-size:0.82rem;color:#4a7a9b;display:flex;gap:16px;align-items:center;background:#f5f8fc;border-bottom:1px solid #dde5ef}}
+.no-alerts{{text-align:center;padding:48px 24px;color:#7a9ab8;font-size:1rem}}
 /* ── Table view (gears/blades tabs) ── */
 #table-wrap{{padding:14px 16px;overflow-x:auto}}
 #data-table{{width:100%;border-collapse:collapse;font-size:0.8rem}}
-#data-table th{{background:#0d1c2a;color:#4a7a9b;padding:8px 10px;text-align:right;font-weight:600;position:sticky;top:0}}
-#data-table td{{padding:7px 10px;border-bottom:1px solid #0d1c2a;color:#aac8e0}}
-#data-table tr:hover td{{background:#0a1820}}
+#data-table th{{background:#f0f5fb;color:#4a7a9b;padding:8px 10px;text-align:right;font-weight:600;position:sticky;top:0;border-bottom:2px solid #dde5ef}}
+#data-table td{{padding:7px 10px;border-bottom:1px solid #eef2f7;color:#2a4a6a}}
+#data-table tr:hover td{{background:#f5f8fc}}
 </style>
 </head>
 <body>
@@ -495,13 +496,13 @@ function openModal(idx){{
   // DO chart
   if(doCI){{doCI.destroy();doCI=null;}}
   if(f.dh&&f.dh.length){{
-    doCI=new Chart(document.getElementById('doChart'),{{type:'line',data:{{labels:f.dh.map(d=>d.d),datasets:[{{data:f.dh.map(d=>d.v),borderColor:'#44cc88',backgroundColor:'rgba(68,204,136,.1)',tension:.3,pointRadius:3,fill:true}}]}},options:{{plugins:{{legend:{{display:false}}}},scales:{{x:{{ticks:{{color:'#4a7a9b',font:{{size:9}}}},grid:{{color:'#0d1c2a'}}}},y:{{ticks:{{color:'#4a7a9b'}},grid:{{color:'#1a3347'}}}}}},animation:{{duration:400}}}}}});
+    doCI=new Chart(document.getElementById('doChart'),{{type:'line',data:{{labels:f.dh.map(d=>d.d),datasets:[{{data:f.dh.map(d=>d.v),borderColor:'#27ae60',backgroundColor:'rgba(39,174,96,.1)',tension:.3,pointRadius:3,fill:true}}]}},options:{{plugins:{{legend:{{display:false}}}},scales:{{x:{{ticks:{{color:'#7a9ab8',font:{{size:9}}}},grid:{{color:'#eef2f7'}}}},y:{{ticks:{{color:'#7a9ab8'}},grid:{{color:'#dde5ef'}}}}}},animation:{{duration:400}}}}}});
   }} else document.getElementById('doChart').getContext('2d').clearRect(0,0,999,999);
 
   // Flow chart
   if(flCI){{flCI.destroy();flCI=null;}}
   if(f.fh&&f.fh.length){{
-    flCI=new Chart(document.getElementById('flChart'),{{type:'bar',data:{{labels:f.fh.map(d=>d.d),datasets:[{{data:f.fh.map(d=>d.v),backgroundColor:'rgba(91,196,255,.5)',borderColor:'#5bc4ff',borderWidth:1}}]}},options:{{plugins:{{legend:{{display:false}}}},scales:{{x:{{ticks:{{color:'#4a7a9b',font:{{size:9}}}},grid:{{color:'#0d1c2a'}}}},y:{{ticks:{{color:'#4a7a9b'}},grid:{{color:'#1a3347'}}}}}},animation:{{duration:400}}}}}});
+    flCI=new Chart(document.getElementById('flChart'),{{type:'bar',data:{{labels:f.fh.map(d=>d.d),datasets:[{{data:f.fh.map(d=>d.v),backgroundColor:'rgba(26,90,160,.18)',borderColor:'#1a5aa0',borderWidth:1}}]}},options:{{plugins:{{legend:{{display:false}}}},scales:{{x:{{ticks:{{color:'#7a9ab8',font:{{size:9}}}},grid:{{color:'#eef2f7'}}}},y:{{ticks:{{color:'#7a9ab8'}},grid:{{color:'#dde5ef'}}}}}},animation:{{duration:400}}}}}});
   }}
 
   // Gears
