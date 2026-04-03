@@ -147,6 +147,16 @@ gears_raw  = json.load(open(f'{TMP}/gears.json'))
 blades_raw = json.load(open(f'{TMP}/blades.json'))
 viols_raw  = json.load(open(f'{TMP}/violations.json'))
 
+# ─── ז'אן קלוד בורדים נפרדים: להבים + ביוביות ───────────────────────────
+import os as _osb
+_dash_dir = _osb.path.dirname(_osb.path.abspath(__file__))
+_blades_path = _osb.path.join(_dash_dir, 'blades_new.json')
+_biobiot_path = _osb.path.join(_dash_dir, 'biobiot.json')
+blades_new  = json.load(open(_blades_path))  if _osb.path.exists(_blades_path)  else []
+biobiot_data = json.load(open(_biobiot_path)) if _osb.path.exists(_biobiot_path) else []
+biobiot_with_data = [b for b in biobiot_data if b.get('last_d')]
+print(f"להבים: {len(blades_new)} | ביוביות: {len(biobiot_data)} ({len(biobiot_with_data)} עם נתונים)")
+
 # ─── ז'אן קלוד: Cross-board data ────────────────────────────────────────────
 _OPEN_EXCL = {'טופל','לא נדרש','בוצע',''}
 
@@ -311,7 +321,8 @@ body{{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;m
   <div class="tab" onclick="switchTab('monissues')">📋 נושאים לטיפול{' <span class="alert-tab-badge">'+str(len(jc_issues))+'</span>' if jc_issues else ''}</div>
   <div class="tab" onclick="switchTab('meters')">💧 מדי ספיקה{' <span class="alert-tab-badge">'+str(len(jc_meters))+'</span>' if jc_meters else ''}</div>
   <div class="tab" onclick="switchTab('gears')">⚙️ מגרזות/משמנות</div>
-  <div class="tab" onclick="switchTab('blades')">🔧 להבי מדחס</div>
+  <div class="tab" onclick="switchTab('blades')">🔧 להבי מדחס{' <span class="alert-tab-badge">'+str(sum(1 for b in blades_new if b.get("status") in ("צריך לבדוק","נבדק")))+'</span>' if blades_new else ''}</div>
+  <div class="tab" onclick="switchTab('biobiot')">🚽 ביוביות{' <span class="alert-tab-badge">'+str(len(biobiot_with_data))+'</span>' if biobiot_with_data else ''}</div>
   <div class="tab" onclick="switchTab('viols')">🔬 חריגות דיגומים</div>
 </div>
 <div class="toolbar">
@@ -340,6 +351,12 @@ body{{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;m
 <div id="meters-view" style="display:none">
   <div class="jc-header" id="jc-meters-header"></div>
   <div class="jc-view"><table class="jc-table"><thead id="jc-meters-head"></thead><tbody id="jc-meters-body"></tbody></table></div>
+</div>
+
+<!-- ביוביות view -->
+<div id="biobiot-view" style="display:none">
+  <div style="padding:8px 12px;color:#aac8e0;font-size:0.82rem" id="biobiot-stats"></div>
+  <div style="overflow-x:auto"><table class="jc-table"><thead id="biobiot-head"></thead><tbody id="biobiot-body"></tbody></table></div>
 </div>
 
 <!-- Table view for other tabs -->
@@ -403,6 +420,8 @@ const FAC = {fac_json};
 const OPEN_ALERTS = {json.dumps(OPEN_ALERTS_SUMMARY, ensure_ascii=False)};
 const JC_ISSUES = {json.dumps(jc_issues, ensure_ascii=False)};
 const JC_METERS = {json.dumps(jc_meters, ensure_ascii=False)};
+const BLADES_DATA = {json.dumps(blades_new, ensure_ascii=False)};
+const BIOBIOT_DATA = {json.dumps(biobiot_data, ensure_ascii=False)};
 
 let doCI=null,flCI=null,curTab='facilities';
 
@@ -413,13 +432,14 @@ function statusBadge(s){{const m={{'צריך להחליף':'badge-red','צריך
 
 function switchTab(tab){{
   curTab=tab;
-  const ALL_TABS=['facilities','alerts','monissues','meters','gears','blades','viols'];
+  const ALL_TABS=['facilities','alerts','monissues','meters','gears','blades','biobiot','viols'];
   document.querySelectorAll('.tab').forEach((t,i)=>{{t.classList.toggle('active',ALL_TABS[i]===tab);}});
   document.getElementById('fac-view').style.display=tab==='facilities'?'':'none';
   document.getElementById('alerts-view').style.display=tab==='alerts'?'':'none';
   document.getElementById('monissues-view').style.display=tab==='monissues'?'':'none';
   document.getElementById('meters-view').style.display=tab==='meters'?'':'none';
-  document.getElementById('table-wrap').style.display=(tab!=='facilities'&&tab!=='alerts'&&tab!=='monissues'&&tab!=='meters')?'':'none';
+  document.getElementById('biobiot-view').style.display=tab==='biobiot'?'':'none';
+  document.getElementById('table-wrap').style.display=(tab!=='facilities'&&tab!=='alerts'&&tab!=='monissues'&&tab!=='meters'&&tab!=='biobiot')?'':'none';
   renderTab();
 }}
 
@@ -431,6 +451,7 @@ function renderTab(){{
   else if(curTab==='meters') renderMeters(q);
   else if(curTab==='gears') renderGears(q);
   else if(curTab==='blades') renderBlades(q);
+  else if(curTab==='biobiot') renderBiobiot(q);
   else if(curTab==='viols') renderViols(q);
 }}
 
@@ -507,16 +528,39 @@ function renderGears(q){{
 }}
 
 function renderBlades(q){{
-  const rows=FAC.filter(f=>f.blades&&f.blades.length).flatMap(f=>f.blades.map(b=>Object.assign({{fac:f.n}},b))).filter(r=>!q||r.fac.includes(q)||r.n.includes(q));
-  document.getElementById('stats').innerHTML=`${{rows.length}} מדחסים | להבים`;
-  document.getElementById('table-head').innerHTML=`<tr><th>מתקן</th><th>מדחס</th><th>סטטוס</th><th>בדיקה אחרונה</th><th>בדיקה הבאה</th><th>גובה</th><th>חשבון</th></tr>`;
-  document.getElementById('table-body').innerHTML=rows.map(r=>`<tr style="${{isOverdue(r.next)&&r.status==='צריך לבדוק'?'background:#1a0808':''}}">
-    <td style="font-weight:600;color:#e8f4ff">${{r.fac}}</td><td style="color:#aac8e0;font-size:0.8rem">${{r.n}}</td>
-    <td>${{statusBadge(r.status)}}</td><td style="font-size:0.8rem">${{r.last||'—'}}</td>
-    <td ${{dateCls(r.next)}} style="font-size:0.8rem">${{r.next||'—'}}</td>
-    <td style="font-size:0.8rem;color:#aac8e0">${{r.height||'—'}}</td>
-    <td><span class="badge badge-blue">${{r.account||'ט.ל.'}}</span></td>
+  const rows=BLADES_DATA.filter(r=>!q||r.n.includes(q)||r.g.includes(q));
+  const needsCheck=rows.filter(r=>r.status==='צריך לבדוק'||r.status==='נבדק').length;
+  document.getElementById('stats').innerHTML=`${{rows.length}} מדחסים | ${{needsCheck}} לבדיקה`;
+  document.getElementById('table-head').innerHTML=`<tr><th>מתקן/מדחס</th><th>אזור</th><th>סטטוס</th><th>החלפה אחרונה</th><th>בדיקה הבאה</th><th>גובה להב</th><th>סוג</th></tr>`;
+  document.getElementById('table-body').innerHTML=rows.map(r=>`<tr style="${{r.overdue&&r.status==='צריך לבדוק'?'background:#1a0808':''}}">
+    <td style="font-weight:600;color:#e8f4ff">${{r.n}}</td>
+    <td style="color:#8ab0d0;font-size:0.8rem">${{r.g}}</td>
+    <td>${{statusBadge(r.status)}}</td>
+    <td style="font-size:0.8rem">${{r.last_d||'—'}}</td>
+    <td ${{dateCls(r.next_check)}} style="font-size:0.8rem">${{r.next_check||'—'}}</td>
+    <td style="font-size:0.8rem;color:#aac8e0">${{r.height||'—'}} mm</td>
+    <td style="font-size:0.8rem;color:#aac8e0">${{r.type||'—'}}</td>
   </tr>`).join('');
+}}
+
+function renderBiobiot(q){{
+  const rows=BIOBIOT_DATA.filter(r=>!q||r.n.includes(q)||r.g.includes(q));
+  const withData=rows.filter(r=>r.last_d).length;
+  document.getElementById('biobiot-stats').innerHTML=`${{rows.length}} מתקנים | ${{withData}} עם נתוני שאיבה`;
+  document.getElementById('biobiot-head').innerHTML=`<tr><th>מתקן</th><th>אזור</th><th>שאיבה אחרונה</th><th>סטטוס</th><th>ימים מאז</th><th>מס' שאיבות</th></tr>`;
+  document.getElementById('biobiot-body').innerHTML=rows.map(r=>{{
+    const daysAgo=r.days_ago;
+    const daysStyle=daysAgo===null?'color:#555':daysAgo>365?'color:#ff6b6b;font-weight:600':daysAgo>180?'color:#ffa066':'color:#7ec8a0';
+    const daysText=daysAgo===null?'—':`${{daysAgo}} ימים`;
+    return `<tr>
+      <td style="font-weight:600;color:#e8f4ff">${{r.n}}</td>
+      <td style="color:#8ab0d0;font-size:0.8rem">${{r.g}}</td>
+      <td style="font-size:0.8rem">${{r.last_d||'—'}}</td>
+      <td>${{r.last_s?`<span class="status-pill" style="background:#2a5a2a;color:#7ec8a0;padding:2px 8px;border-radius:10px;font-size:0.75rem">${{r.last_s}}</span>`:'<span style="color:#444">—</span>'}}</td>
+      <td style="font-size:0.9rem;${{daysStyle}}">${{daysText}}</td>
+      <td style="text-align:center;color:#aac8e0">${{r.count||0}}</td>
+    </tr>`;
+  }}).join('');
 }}
 
 function renderViols(q){{
