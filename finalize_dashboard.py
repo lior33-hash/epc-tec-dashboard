@@ -147,6 +147,31 @@ gears_raw  = json.load(open(f'{TMP}/gears.json'))
 blades_raw = json.load(open(f'{TMP}/blades.json'))
 viols_raw  = json.load(open(f'{TMP}/violations.json'))
 
+# ─── ז'אן קלוד: Cross-board data ────────────────────────────────────────────
+_OPEN_EXCL = {'טופל','לא נדרש','בוצע',''}
+
+# 1. Open Monday issues (aggregated from all facilities)
+jc_issues = []
+for _f in fac:
+    for _iss in _f.get('all_issues', []):
+        if _iss.get('text') and _iss.get('status','') not in _OPEN_EXCL:
+            jc_issues.append({'f':_f['n'],'t':_f['t'],'d':_iss.get('d',''),
+                               'text':_iss.get('text','')[:115],'s':_iss.get('status',''),'tech':_iss.get('tech','')})
+jc_issues.sort(key=lambda x: x['d'], reverse=True)
+print(f"ז'אן קלוד issues: {len(jc_issues)}")
+
+# 2. Meter readings — extract latest reading per facility from enriched JSON (fh = flow history)
+jc_meters = []
+for _f in fac:
+    _fh = _f.get('fh', [])
+    if _fh:
+        _latest = max(_fh, key=lambda x: x.get('d', ''))
+        _mv = _latest.get('v', 0)
+        if _mv and float(_mv) > 0:
+            jc_meters.append({'f': _f['n'], 't': _f['t'], 'd': _latest.get('d',''), 'm': str(_mv), 'mv': float(_mv), 'w': ''})
+jc_meters.sort(key=lambda x: x['f'])
+print(f"ז'אן קלוד meters: {len(jc_meters)}")
+
 HTML = f'''<!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
@@ -259,6 +284,20 @@ body{{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;m
 #data-table th{{background:#1e3248;color:#5a8aaa;padding:8px 10px;text-align:right;font-weight:600;position:sticky;top:0;border-bottom:2px solid #2a4565}}
 #data-table td{{padding:7px 10px;border-bottom:1px solid #1e3248;color:#aacce0}}
 #data-table tr:hover td{{background:#1c3050}}
+/* ── ז'אן קלוד tabs ── */
+.jc-view{{padding:14px 16px}}
+.jc-header{{display:flex;gap:16px;align-items:center;padding:10px 16px;background:#1c2d40;border-bottom:1px solid #263d56;font-size:0.82rem;color:#6a9abb;flex-wrap:wrap}}
+.jc-table{{width:100%;border-collapse:collapse;font-size:0.8rem}}
+.jc-table th{{background:#1e3248;color:#5a8aaa;padding:8px 10px;text-align:right;font-weight:600;position:sticky;top:0;border-bottom:2px solid #2a4565}}
+.jc-table td{{padding:7px 10px;border-bottom:1px solid #1e3248;color:#aacce0;vertical-align:top}}
+.jc-table tr:hover td{{background:#1c3050}}
+.status-pill{{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;white-space:nowrap}}
+.sp-urgent{{background:#2e0808;color:#ff8a80;border:1px solid #5a1515}}
+.sp-refer{{background:#2e1a00;color:#ffaa44;border:1px solid #5a3500}}
+.sp-price{{background:#0a1e38;color:#5bc4ff;border:1px solid #1a3d6a}}
+.sp-other{{background:#1e2f42;color:#7a9abb;border:1px solid #2a4565}}
+.meter-ok{{color:#4cde8a;font-weight:600}}
+.meter-bar{{display:inline-block;height:8px;background:linear-gradient(90deg,#2a6090,#4acde8);border-radius:4px;vertical-align:middle;margin-right:6px}}
 </style>
 </head>
 <body>
@@ -269,6 +308,8 @@ body{{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;m
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
   <div class="tab" onclick="switchTab('alerts')">🚨 התראות פתוחות{' <span class="alert-tab-badge">'+str(len(OPEN_ALERTS_SUMMARY))+'</span>' if OPEN_ALERTS_SUMMARY else ''}</div>
+  <div class="tab" onclick="switchTab('monissues')">📋 נושאים לטיפול{' <span class="alert-tab-badge">'+str(len(jc_issues))+'</span>' if jc_issues else ''}</div>
+  <div class="tab" onclick="switchTab('meters')">💧 מדי ספיקה{' <span class="alert-tab-badge">'+str(len(jc_meters))+'</span>' if jc_meters else ''}</div>
   <div class="tab" onclick="switchTab('gears')">⚙️ מגרזות/משמנות</div>
   <div class="tab" onclick="switchTab('blades')">🔧 להבי מדחס</div>
   <div class="tab" onclick="switchTab('viols')">🔬 חריגות דיגומים</div>
@@ -287,6 +328,18 @@ body{{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;m
 <div id="alerts-view" style="display:none">
   <div class="alerts-summary" id="alerts-summary"></div>
   <div class="alerts-grid" id="alerts-grid"></div>
+</div>
+
+<!-- ז'אן קלוד: Monday Issues view -->
+<div id="monissues-view" style="display:none">
+  <div class="jc-header" id="jc-issues-header"></div>
+  <div class="jc-view"><table class="jc-table"><thead id="jc-issues-head"></thead><tbody id="jc-issues-body"></tbody></table></div>
+</div>
+
+<!-- ז'אן קלוד: Meters view -->
+<div id="meters-view" style="display:none">
+  <div class="jc-header" id="jc-meters-header"></div>
+  <div class="jc-view"><table class="jc-table"><thead id="jc-meters-head"></thead><tbody id="jc-meters-body"></tbody></table></div>
 </div>
 
 <!-- Table view for other tabs -->
@@ -348,6 +401,8 @@ body{{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;m
 <script>
 const FAC = {fac_json};
 const OPEN_ALERTS = {json.dumps(OPEN_ALERTS_SUMMARY, ensure_ascii=False)};
+const JC_ISSUES = {json.dumps(jc_issues, ensure_ascii=False)};
+const JC_METERS = {json.dumps(jc_meters, ensure_ascii=False)};
 
 let doCI=null,flCI=null,curTab='facilities';
 
@@ -358,10 +413,13 @@ function statusBadge(s){{const m={{'צריך להחליף':'badge-red','צריך
 
 function switchTab(tab){{
   curTab=tab;
-  document.querySelectorAll('.tab').forEach((t,i)=>{{t.classList.toggle('active',['facilities','alerts','gears','blades','viols'][i]===tab);}});
+  const ALL_TABS=['facilities','alerts','monissues','meters','gears','blades','viols'];
+  document.querySelectorAll('.tab').forEach((t,i)=>{{t.classList.toggle('active',ALL_TABS[i]===tab);}});
   document.getElementById('fac-view').style.display=tab==='facilities'?'':'none';
   document.getElementById('alerts-view').style.display=tab==='alerts'?'':'none';
-  document.getElementById('table-wrap').style.display=(tab!=='facilities'&&tab!=='alerts')?'':'none';
+  document.getElementById('monissues-view').style.display=tab==='monissues'?'':'none';
+  document.getElementById('meters-view').style.display=tab==='meters'?'':'none';
+  document.getElementById('table-wrap').style.display=(tab!=='facilities'&&tab!=='alerts'&&tab!=='monissues'&&tab!=='meters')?'':'none';
   renderTab();
 }}
 
@@ -369,6 +427,8 @@ function renderTab(){{
   const q=(document.getElementById('search').value||'').trim();
   if(curTab==='facilities') renderFacilities(q);
   else if(curTab==='alerts') renderAlerts(q);
+  else if(curTab==='monissues') renderMonIssues(q);
+  else if(curTab==='meters') renderMeters(q);
   else if(curTab==='gears') renderGears(q);
   else if(curTab==='blades') renderBlades(q);
   else if(curTab==='viols') renderViols(q);
@@ -468,6 +528,56 @@ function renderViols(q){{
     <td style="color:#ff99cc;font-size:0.82rem">${{r.params||'—'}}</td>
     <td><span class="badge ${{r.status==='לא נשלח'?'badge-red':'badge-orange'}}">${{r.status||'—'}}</span></td>
   </tr>`).join('');
+}}
+
+function renderMonIssues(q){{
+  const filtered=JC_ISSUES.filter(i=>!q||i.f.includes(q)||i.text.includes(q));
+  const urgent=filtered.filter(i=>i.s==='דרוש טיפול').length;
+  const referred=filtered.filter(i=>i.s==='הועבר לגורם מטפל').length;
+  const price=filtered.filter(i=>i.s==='נשלחה הצעת מחיר').length;
+  document.getElementById('stats').innerHTML=`${{filtered.length}} נושאים פתוחים &nbsp;|&nbsp;<span class="stat-badge sb-crit">🔴 דרוש טיפול: ${{urgent}}</span><span class="stat-badge sb-warn">🟡 הועבר: ${{referred}}</span><span class="stat-badge sb-ok">💰 הצעת מחיר: ${{price}}</span>`;
+  document.getElementById('jc-issues-header').innerHTML=
+    `<span style="color:#aac8e0;font-weight:600">📋 נושאים לטיפול — מאנדיי (ז'אן קלוד)</span>
+     <span class="stat-badge sb-crit">🔴 ${{urgent}} דרוש טיפול</span>
+     <span class="stat-badge sb-warn">🟡 ${{referred}} הועבר</span>
+     <span class="stat-badge sb-ok">💰 ${{price}} הצעות מחיר</span>`;
+  document.getElementById('jc-issues-head').innerHTML=`<tr><th>מתקן</th><th>סוג</th><th>נושא לטיפול</th><th>סטטוס</th><th>טכנאי</th><th>תאריך</th></tr>`;
+  const statusCls={{'דרוש טיפול':'sp-urgent','הועבר לגורם מטפל':'sp-refer','נשלחה הצעת מחיר':'sp-price','אושר ע"י גורם מטפל':'sp-other'}};
+  document.getElementById('jc-issues-body').innerHTML=filtered.length
+    ? filtered.map(i=>`<tr>
+        <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${{i.f}}</td>
+        <td><span style="font-size:0.7rem;color:${{i.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}}">${{i.t}}</span></td>
+        <td style="max-width:420px;line-height:1.45;color:#d0e4f5">${{i.text}}</td>
+        <td><span class="status-pill ${{statusCls[i.s]||'sp-other'}}">${{i.s}}</span></td>
+        <td style="color:#7a9abb;font-size:0.78rem">${{i.tech||'—'}}</td>
+        <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${{i.d||'—'}}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="no-data">אין נושאים פתוחים</td></tr>';
+}}
+
+function renderMeters(q){{
+  const filtered=JC_METERS.filter(m=>!q||m.f.includes(q));
+  const maxMv=Math.max(...filtered.map(m=>m.mv),1);
+  document.getElementById('stats').innerHTML=`${{filtered.length}} מתקנים | מדי ספיקה קולחים`;
+  document.getElementById('jc-meters-header').innerHTML=
+    `<span style="color:#aac8e0;font-weight:600">💧 מדי ספיקה קולחים (מ"ק מצטבר) — ז'אן קלוד</span>
+     <span style="color:#5a8aaa">${{filtered.length}} מתקנים עם קריאות</span>`;
+  document.getElementById('jc-meters-head').innerHTML=`<tr><th>מתקן</th><th>סוג</th><th>קריאה מצטברת (מ"ק)</th><th>גרף יחסי</th><th>טכנאי</th><th>תאריך קריאה</th></tr>`;
+  const sorted=[...filtered].sort((a,b)=>b.mv-a.mv);
+  document.getElementById('jc-meters-body').innerHTML=sorted.length
+    ? sorted.map(m=>{{
+        const pct=Math.round((m.mv/maxMv)*180);
+        const mv=parseFloat(m.m.replace(',','')).toLocaleString('he-IL');
+        return`<tr>
+          <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${{m.f}}</td>
+          <td><span style="font-size:0.7rem;color:${{m.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}}">${{m.t}}</span></td>
+          <td class="meter-ok">${{mv}}</td>
+          <td><span class="meter-bar" style="width:${{pct}}px"></span></td>
+          <td style="color:#7a9abb;font-size:0.78rem">${{m.w||'—'}}</td>
+          <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${{m.d||'—'}}</td>
+        </tr>`;
+      }}).join('')
+    : '<tr><td colspan="6" class="no-data">אין נתוני מד ספיקה</td></tr>';
 }}
 
 function openModal(idx){{
