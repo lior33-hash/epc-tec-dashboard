@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPC-TEC Dashboard — 05/04/2026 18:49</title>
+<title>EPC-TEC Dashboard — 05/04/2026 18:55</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -130,7 +130,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 <body>
 <div class="header">
   <div class="logo">⚡ EPC-TEC Dashboard</div>
-  <div class="header-date">עודכן: 05/04/2026 18:49 | מאנדיי + SMS Live</div>
+  <div class="header-date">עודכן: 05/04/2026 18:55 | מאנדיי + SMS Live</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
@@ -196,6 +196,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
       <div class="metrics-row" id="modal-metrics"></div>
       <div class="charts-row">
         <div class="chart-box"><div class="chart-title">DO — חמצן מומס (PPM)</div><canvas id="doChart"></canvas></div>
+        <div class="chart-box"><div class="chart-title">עכירות NTU</div><canvas id="ntuChart"></canvas></div>
         <div class="chart-box"><div class="chart-title">ספיקה ממוצעת (מ"ק/יום)</div><canvas id="flChart"></canvas></div>
       </div>
       <!-- Tracking sections -->
@@ -227,7 +228,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
         <div class="section-title">📅 היסטוריית ביקורים</div>
         <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
       </div>
-      <div class="modal-source">מקור: Monday.com + SMS4Free · 05/04/2026 18:49</div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 05/04/2026 18:55</div>
     </div>
   </div>
 </div>
@@ -240,7 +241,7 @@ const JC_METERS = [{"f": "אבנת", "t": "ביו-דיסק", "d": "2026-03-10", 
 const BLADES_DATA = [{"n": "בית אריזה - בית הערבה - שמאל", "g": "", "status": "צריך לבדוק", "last_d": "2025-03-06", "next_check": "2026-04-01", "height": "27", "type": "4.10", "tech": "", "overdue": true}, {"n": "בית אריזה - בית הערבה - ימין", "g": "", "status": "צריך לבדוק", "last_d": "2025-03-06", "next_check": "2026-04-01", "height": "27", "type": "4.10", "tech": "", "overdue": true}, {"n": "צומת הלידו - 1 - ימין", "g": "", "status": "הוחלף", "last_d": "2025-10-29", "next_check": "2026-11-01", "height": "35", "type": "4.16", "tech": "", "overdue": false}, {"n": "צומת הלידו - 2 - שמאל", "g": "", "status": "הוחלף", "last_d": "2025-11-26", "next_check": "2026-11-01", "height": "35", "type": "4.16", "tech": "", "overdue": false}, {"n": "ד\"א מורן", "g": "", "status": "נבדק", "last_d": "2024-12-25", "next_check": "2026-06-01", "height": "15", "type": "4.4", "tech": "", "overdue": false}, {"n": "ד\"א גני חוגה", "g": "", "status": "הוחלף", "last_d": "2025-12-17", "next_check": "2026-12-01", "height": "18.5", "type": "4.8", "tech": "", "overdue": false}, {"n": "סונול עמודים", "g": "", "status": "הוחלף", "last_d": "2025-07-08", "next_check": "2026-07-01", "height": "35", "type": "4.16", "tech": "", "overdue": false}, {"n": "ד\"א זכרון", "g": "", "status": "צריך לבדוק", "last_d": "2024-12-10", "next_check": "2026-04-01", "height": "18", "type": "4.8", "tech": "", "overdue": true}, {"n": "ד\"א שימרון", "g": "", "status": "הוחלף", "last_d": "2025-11-13", "next_check": "2026-11-13", "height": "16", "type": "4.4", "tech": "", "overdue": false}, {"n": "בית אריזה - נגב", "g": "", "status": "צריך לבדוק", "last_d": "2025-04-01", "next_check": "2026-04-01", "height": "18.5", "type": "4.8", "tech": "", "overdue": true}, {"n": "ד\"א אורים", "g": "", "status": "צריך לבדוק", "last_d": "2024-10-10", "next_check": "2026-04-01", "height": "30", "type": "4.16", "tech": "", "overdue": true}, {"n": "פז השקמה", "g": "", "status": "צריך לבדוק", "last_d": "2024-08-20", "next_check": "2026-04-01", "height": "32", "type": "4.16", "tech": "", "overdue": true}, {"n": "סונול בית השקמה", "g": "", "status": "הוחלף", "last_d": "2025-08-17", "next_check": "2026-08-20", "height": "16", "type": "4.8", "tech": "", "overdue": false}, {"n": "פז סילבר", "g": "", "status": "צריך לבדוק", "last_d": "2025-03-25", "next_check": "2026-04-01", "height": "35", "type": "4.16", "tech": "", "overdue": true}, {"n": "ד\"א נגבה", "g": "", "status": "הוחלף", "last_d": "2025-11-18", "next_check": "2026-11-18", "height": "18.5", "type": "4.8", "tech": "", "overdue": false}, {"n": "שתיל נטו", "g": "", "status": "צריך לבדוק", "last_d": "2024-04-04", "next_check": "2026-04-01", "height": "17", "type": "4.8", "tech": "", "overdue": true}, {"n": "ד\"א בני ציון", "g": "", "status": "הוחלף", "last_d": "2025-10-19", "next_check": "2026-09-01", "height": "27", "type": "4.10", "tech": "", "overdue": false}, {"n": "אפרסמור", "g": "", "status": "הוחלף", "last_d": "2025-11-02", "next_check": "2026-11-01", "height": "18.5", "type": "4.8", "tech": "", "overdue": false}, {"n": "אקוסול", "g": "", "status": "הוחלף", "last_d": "2025-11-03", "next_check": "2026-11-02", "height": "18.5", "type": "4.8", "tech": "", "overdue": false}, {"n": "אשלים B", "g": "", "status": "הוחלף", "last_d": "2026-03-11", "next_check": "2027-03-11", "height": "18.5", "type": "4.8", "tech": "", "overdue": false}, {"n": "עבדת", "g": "", "status": "הוחלף", "last_d": "2025-10-19", "next_check": "2026-09-01", "height": "35", "type": "4.16", "tech": "", "overdue": false}, {"n": "עבדת 2", "g": "", "status": "הוחלף", "last_d": "2025-10-19", "next_check": "2026-09-01", "height": "35", "type": "4.16", "tech": "", "overdue": false}, {"n": "אשלג סדום שמאל", "g": "", "status": "צריך לבדוק", "last_d": "2024-04-08", "next_check": "2026-04-01", "height": "29", "type": "4.16", "tech": "", "overdue": true}, {"n": "אשלג סדום ימין", "g": "", "status": "צריך לבדוק", "last_d": "2024-04-08", "next_check": "2026-04-01", "height": "29", "type": "4.16", "tech": "", "overdue": true}, {"n": "צפע", "g": "", "status": "הוחלף", "last_d": "2025-10-01", "next_check": "2026-10-01", "height": "18.5", "type": "4.8", "tech": "", "overdue": false}];
 const BIOBIOT_DATA = [{"n": "ד\"א אורים", "g": "", "last_d": "2025-09-25", "last_s": "בוצע", "count": 0, "days_ago": 192}, {"n": "ערוגות הבושם", "g": "", "last_d": "2025-09-25", "last_s": "בוצע", "count": 0, "days_ago": 192}, {"n": "בית אריה (2)", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 0, "days_ago": 192}, {"n": "עופרים", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 0, "days_ago": 192}, {"n": "עבדת", "g": "", "last_d": "2025-09-21", "last_s": "בוצע", "count": 0, "days_ago": 196}, {"n": "ד\"א גן יבנה", "g": "", "last_d": "2025-09-04", "last_s": "בוצע", "count": 0, "days_ago": 213}, {"n": "נטועה", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 0, "days_ago": 231}, {"n": "גיתה", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 0, "days_ago": 231}, {"n": "סונול עמודים", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 0, "days_ago": 231}, {"n": "אפרסמור", "g": "", "last_d": "2024-03-14", "last_s": "", "count": 0, "days_ago": 752}, {"n": "ד\"א בני ציון", "g": "", "last_d": "2023-05-24", "last_s": "", "count": 0, "days_ago": 1047}, {"n": "ד\"א צומת גנים", "g": "", "last_d": "2022-10-02", "last_s": "", "count": 0, "days_ago": 1281}, {"n": "בית אריה", "g": "", "last_d": "2022-08-10", "last_s": "", "count": 0, "days_ago": 1334}, {"n": "בית הערבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "צומת הלידו", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "חוף קלי\"ה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "צובה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א טל שחר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בית האריזה בית הערבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "אבנת", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "קיבוץ אלמוג", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א מורן", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א גני חוגה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א חוקוק", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "רמת הנדיב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א זכרון", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א שימרון", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א יובלים", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ניר יצחק", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "קיבוץ מגן", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "כרם שלום", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בית אריזה - נגב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "סונול בית השקמה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "פז סילבר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א דבירה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א נגבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "נתיב העשרה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "שתיל נטו", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "הר עמשא", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "פני חבר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "סוסיה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בית חגי", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "אקוסול", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "אשלים B", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בארות", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ממשית", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "רותם תעשיות", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "חכ\"ד", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "דור אלון להב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "פז השקמה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}];
 
-let doCI=null,flCI=null,curTab='facilities';
+let doCI=null,ntuCI=null,flCI=null,curTab='facilities';
 
 function doColor(v){const n=parseFloat(v);if(!v||isNaN(n))return '';if(n===0)return 'do-zero';if(n<2)return 'do-low';return 'do-ok';}
 function ntuColor(v){if(v===null||v===undefined||v==='')return '';const n=parseFloat(v);if(isNaN(n))return '';if(n<=50)return 'ntu-green';if(n<=100)return 'ntu-orange';return 'ntu-red';}
@@ -474,6 +475,12 @@ function openModal(idx){
     doCI=new Chart(document.getElementById('doChart'),{type:'line',data:{labels:f.dh.map(d=>isoToIL(d.d)),datasets:[{data:f.dh.map(d=>d.v),borderColor:'#4cde8a',backgroundColor:'rgba(76,222,138,.12)',tension:.3,pointRadius:3,fill:true}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'}}},animation:{duration:400}}});
   } else document.getElementById('doChart').getContext('2d').clearRect(0,0,999,999);
 
+  // NTU chart
+  if(ntuCI){ntuCI.destroy();ntuCI=null;}
+  if(f.nth&&f.nth.length){
+    ntuCI=new Chart(document.getElementById('ntuChart'),{type:'line',data:{labels:f.nth.map(d=>isoToIL(d.d)),datasets:[{data:f.nth.map(d=>d.v),borderColor:'#ffaa33',backgroundColor:'rgba(255,170,51,.12)',tension:.3,pointRadius:3,fill:true}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'},min:0}},animation:{duration:400}}});
+  } else document.getElementById('ntuChart').getContext('2d').clearRect(0,0,999,999);
+
   // Flow chart
   if(flCI){flCI.destroy();flCI=null;}
   if(f.fh&&f.fh.length){
@@ -563,7 +570,7 @@ function openModal(idx){
 
 function closeModal(){
   document.getElementById('overlay').classList.remove('open');
-  if(doCI){doCI.destroy();doCI=null;} if(flCI){flCI.destroy();flCI=null;}
+  if(doCI){doCI.destroy();doCI=null;} if(ntuCI){ntuCI.destroy();ntuCI=null;} if(flCI){flCI.destroy();flCI=null;}
 }
 document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
