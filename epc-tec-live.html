@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPC-TEC Dashboard — 05/04/2026 18:55</title>
+<title>EPC-TEC Dashboard — 05/04/2026 18:59</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -130,7 +130,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 <body>
 <div class="header">
   <div class="logo">⚡ EPC-TEC Dashboard</div>
-  <div class="header-date">עודכן: 05/04/2026 18:55 | מאנדיי + SMS Live</div>
+  <div class="header-date">עודכן: 05/04/2026 18:59 | מאנדיי + SMS Live</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
@@ -228,7 +228,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
         <div class="section-title">📅 היסטוריית ביקורים</div>
         <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
       </div>
-      <div class="modal-source">מקור: Monday.com + SMS4Free · 05/04/2026 18:55</div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 05/04/2026 18:59</div>
     </div>
   </div>
 </div>
@@ -327,7 +327,7 @@ function renderFacilities(q){
       <div class="card-header"><div class="card-name">${f.n}</div><span class="type-badge">${f.t}</span></div>
       <div class="card-metrics">
         <div class="metric"><div class="metric-label">DO</div><div class="metric-value">${doHtml}</div></div>
-        <div class="metric"><div class="metric-label">עכירות NTU</div><div class="metric-value"><span class="${ntuColor(f.ntu)}">${f.ntu!==null&&f.ntu!==undefined?f.ntu+'<span style="font-size:0.75em;opacity:0.7"> (ממוצע '+f.ntu_avg+')</span>':'<span style="color:#3a6080">—</span>'}</span></div></div>
+        <div class="metric"><div class="metric-label">עכירות NTU</div><div class="metric-value"><span class="${ntuColor(f.ntu_avg)}">${f.ntu_avg!==null&&f.ntu_avg!==undefined?f.ntu_avg:'<span style="color:#3a6080">—</span>'}</span></div></div>
         <div class="metric"><div class="metric-label">ספיקה ממוצעת</div><div class="metric-value" style="color:#44bbee">${flowAvg!==null?flowAvg+' מ"ק/י':'<span style="color:#3a6080">—</span>'}</div></div>
       </div>${issHtml}${tagsHtml}
       <div class="card-footer"><span>ביקור: ${f.lv||'—'}</span>${dlyHtml}</div>
@@ -464,7 +464,7 @@ function openModal(idx){
   const flowAvg=f.fh&&f.fh.length?(Math.round(f.fh.reduce((s,x)=>s+x.v,0)/f.fh.length*10)/10):null;
   document.getElementById('modal-metrics').innerHTML=`
     <div class="metric-big"><div class="label">DO (PPM)</div><div class="value ${doColor(f.do)}">${f.do||'—'}</div></div>
-    <div class="metric-big"><div class="label">עכירות NTU</div><div class="value ${ntuColor(f.ntu)}">${f.ntu!==null&&f.ntu!==undefined?f.ntu:'—'}</div>${f.ntu_avg!==null&&f.ntu_avg!==undefined?'<div style="font-size:0.65rem;color:#5a8aaa;margin-top:2px">ממוצע '+f.ntu_avg+'</div>':''}</div>
+    <div class="metric-big"><div class="label">עכירות NTU</div><div class="value ${ntuColor(f.ntu_avg)}">${f.ntu_avg!==null&&f.ntu_avg!==undefined?f.ntu_avg:'—'}</div></div>
     <div class="metric-big"><div class="label">ספיקה ממוצעת</div><div class="value" style="color:#44bbee">${flowAvg!==null?flowAvg+' מ"ק/י':'—'}</div></div>
     <div class="metric-big"><div class="label">נושאים לטיפול</div><div class="value" style="font-size:0.88rem;color:${f.oi&&f.oi.length?'#ffaa33':'#44cc88'}">${f.is||'לא נדרש'}</div></div>
     <div class="metric-big"><div class="label">שאיבה</div><div class="value" style="font-size:0.82rem;color:#aac8e0">${f.ps||'—'}</div></div>`;
