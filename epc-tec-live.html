@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPC-TEC Dashboard — 05/04/2026</title>
+<title>EPC-TEC Dashboard — 05/04/2026 14:22</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -129,7 +129,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 <body>
 <div class="header">
   <div class="logo">⚡ EPC-TEC Dashboard</div>
-  <div class="header-date">עודכן: 05/04/2026 | מאנדיי + SMS Live</div>
+  <div class="header-date">עודכן: 05/04/2026 14:22 | מאנדיי + SMS Live</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
@@ -226,7 +226,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
         <div class="section-title">📅 היסטוריית ביקורים</div>
         <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
       </div>
-      <div class="modal-source">מקור: Monday.com + SMS4Free · 05/04/2026</div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 05/04/2026 14:22</div>
     </div>
   </div>
 </div>
@@ -245,6 +245,7 @@ function doColor(v){const n=parseFloat(v);if(!v||isNaN(n))return '';if(n===0)ret
 function isOverdue(d){if(!d)return false;return new Date(d)<new Date();}
 function dateCls(d){if(!d)return '';const diff=(new Date(d)-new Date())/864e5;if(diff<0)return 'style="color:#ff6b6b;font-weight:600"';if(diff<30)return 'style="color:#ffaa33"';return '';}
 function statusBadge(s){const m={'צריך להחליף':'badge-red','צריך לבדוק':'badge-orange','הוחלף':'badge-green','נבדק':'badge-blue','לא נדרש':'badge-grey','לא פעיל':'badge-grey','לא בשירות':'badge-grey'};return`<span class="badge ${m[s]||'badge-grey'}">${s||'—'}</span>`;}
+function isoToIL(d){if(!d)return'—';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
 
 function switchTab(tab){
   curTab=tab;
@@ -336,8 +337,8 @@ function renderGears(q){
   document.getElementById('table-head').innerHTML=`<tr><th>מתקן</th><th>פריט</th><th>סטטוס</th><th>החלפה אחרונה</th><th>החלפה הבאה</th><th>כמות</th><th>חשבון</th></tr>`;
   document.getElementById('table-body').innerHTML=rows.map(r=>`<tr style="${isOverdue(r.next)&&r.status!=='הוחלף'?'background:#1a0808':''}">
     <td style="font-weight:600;color:#e8f4ff">${r.fac}</td><td style="color:#aac8e0">${r.n}</td>
-    <td>${statusBadge(r.status)}</td><td style="font-size:0.8rem">${r.last||'—'}</td>
-    <td ${dateCls(r.next)} style="font-size:0.8rem">${r.next||'—'}</td>
+    <td>${statusBadge(r.status)}</td><td style="font-size:0.8rem">${isoToIL(r.last)}</td>
+    <td ${dateCls(r.next)} style="font-size:0.8rem">${isoToIL(r.next)}</td>
     <td style="font-size:0.8rem;color:#aac8e0">${r.qty||'—'}</td>
     <td><span class="badge ${r.account==='ט.ל.'?'badge-blue':'badge-grey'}">${r.account||''}</span></td>
   </tr>`).join('');
@@ -352,8 +353,8 @@ function renderBlades(q){
     <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
     <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
     <td>${statusBadge(r.status)}</td>
-    <td style="font-size:0.8rem">${r.last_d||'—'}</td>
-    <td ${dateCls(r.next_check)} style="font-size:0.8rem">${r.next_check||'—'}</td>
+    <td style="font-size:0.8rem">${isoToIL(r.last_d)}</td>
+    <td ${dateCls(r.next_check)} style="font-size:0.8rem">${isoToIL(r.next_check)}</td>
     <td style="font-size:0.8rem;color:#aac8e0">${r.height||'—'} mm</td>
     <td style="font-size:0.8rem;color:#aac8e0">${r.type||'—'}</td>
   </tr>`).join('');
@@ -371,7 +372,7 @@ function renderBiobiot(q){
     return `<tr>
       <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
       <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
-      <td style="font-size:0.8rem">${r.last_d||'—'}</td>
+      <td style="font-size:0.8rem">${isoToIL(r.last_d)}</td>
       <td>${r.last_s?`<span class="status-pill" style="background:#2a5a2a;color:#7ec8a0;padding:2px 8px;border-radius:10px;font-size:0.75rem">${r.last_s}</span>`:'<span style="color:#444">—</span>'}</td>
       <td style="font-size:0.9rem;${daysStyle}">${daysText}</td>
       <td style="text-align:center;color:#aac8e0">${r.count||0}</td>
@@ -410,7 +411,7 @@ function renderMonIssues(q){
         <td style="max-width:420px;line-height:1.45;color:#d0e4f5">${i.text}</td>
         <td><span class="status-pill ${statusCls[i.s]||'sp-other'}">${i.s}</span></td>
         <td style="color:#7a9abb;font-size:0.78rem">${i.tech||'—'}</td>
-        <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${i.d||'—'}</td>
+        <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${isoToIL(i.d)}</td>
       </tr>`).join('')
     : '<tr><td colspan="6" class="no-data">אין נושאים פתוחים</td></tr>';
 }
@@ -434,7 +435,7 @@ function renderMeters(q){
           <td class="meter-ok">${mv}</td>
           <td><span class="meter-bar" style="width:${pct}px"></span></td>
           <td style="color:#7a9abb;font-size:0.78rem">${m.w||'—'}</td>
-          <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${m.d||'—'}</td>
+          <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${isoToIL(m.d)}</td>
         </tr>`;
       }).join('')
     : '<tr><td colspan="6" class="no-data">אין נתוני מד ספיקה</td></tr>';
@@ -466,13 +467,13 @@ function openModal(idx){
   // DO chart
   if(doCI){doCI.destroy();doCI=null;}
   if(f.dh&&f.dh.length){
-    doCI=new Chart(document.getElementById('doChart'),{type:'line',data:{labels:f.dh.map(d=>d.d),datasets:[{data:f.dh.map(d=>d.v),borderColor:'#4cde8a',backgroundColor:'rgba(76,222,138,.12)',tension:.3,pointRadius:3,fill:true}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'}}},animation:{duration:400}}});
+    doCI=new Chart(document.getElementById('doChart'),{type:'line',data:{labels:f.dh.map(d=>isoToIL(d.d)),datasets:[{data:f.dh.map(d=>d.v),borderColor:'#4cde8a',backgroundColor:'rgba(76,222,138,.12)',tension:.3,pointRadius:3,fill:true}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'}}},animation:{duration:400}}});
   } else document.getElementById('doChart').getContext('2d').clearRect(0,0,999,999);
 
   // Flow chart
   if(flCI){flCI.destroy();flCI=null;}
   if(f.fh&&f.fh.length){
-    flCI=new Chart(document.getElementById('flChart'),{type:'bar',data:{labels:f.fh.map(d=>d.d),datasets:[{data:f.fh.map(d=>d.v),backgroundColor:'rgba(125,212,255,.25)',borderColor:'#7dd4ff',borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'}}},animation:{duration:400}}});
+    flCI=new Chart(document.getElementById('flChart'),{type:'bar',data:{labels:f.fh.map(d=>isoToIL(d.d)),datasets:[{data:f.fh.map(d=>d.v),backgroundColor:'rgba(125,212,255,.25)',borderColor:'#7dd4ff',borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'}}},animation:{duration:400}}});
   }
 
   // Gears
@@ -484,7 +485,7 @@ function openModal(idx){
         <span style="color:#aac8e0">${g.n}</span>
         <div style="display:flex;align-items:center;gap:8px">
           ${statusBadge(g.status)}
-          <span style="font-size:0.72rem;color:#4a7a9b">החלפה הבאה: ${g.next||'—'}</span>
+          <span style="font-size:0.72rem;color:#4a7a9b">החלפה הבאה: ${isoToIL(g.next)}</span>
           <span style="font-size:0.72rem;color:#3a6080">${g.qty||''}</span>
         </div>
       </div>`).join('');
@@ -499,7 +500,7 @@ function openModal(idx){
         <span style="color:#aac8e0;font-size:0.78rem">${b.n}</span>
         <div style="display:flex;gap:8px;align-items:center">
           ${statusBadge(b.status)}
-          <span style="font-size:0.72rem;color:#4a7a9b">בדיקה הבאה: ${b.next||'—'}</span>
+          <span style="font-size:0.72rem;color:#4a7a9b">בדיקה הבאה: ${isoToIL(b.next)}</span>
           <span style="font-size:0.72rem;color:#3a6080">גובה: ${b.height||'—'}</span>
         </div>
       </div>`).join('');
@@ -530,7 +531,7 @@ function openModal(idx){
           <span>🔧 ${i.text||i}</span>
           ${i.status?`<span style="font-size:0.72rem;color:${sc};white-space:nowrap;padding-top:1px">${i.status}</span>`:''}
         </div>
-        ${i.d?`<div style="font-size:0.7rem;color:#4a7a9b;margin-top:2px">${i.d} · ${i.tech||''}</div>`:''}
+        ${i.d?`<div style="font-size:0.7rem;color:#4a7a9b;margin-top:2px">${isoToIL(i.d)} · ${i.tech||''}</div>`:''}
       </div>`;
     }).join('');
   } else issSec.style.display='none';
@@ -550,7 +551,7 @@ function openModal(idx){
   // Visits
   const tbody=document.getElementById('modal-visits');
   if(f.vh&&f.vh.length){
-    tbody.innerHTML=f.vh.map(v=>{const cls=v.type==='שיגרתי'?'tag-routine':v.type==='חירום'?'tag-urgent':'tag-other';return`<tr><td>${v.d}</td><td>${v.tech}</td><td class="${cls}">${v.type||'—'}</td></tr>`;}).join('');
+    tbody.innerHTML=f.vh.map(v=>{const cls=v.type==='שיגרתי'?'tag-routine':v.type==='חירום'?'tag-urgent':'tag-other';return`<tr><td>${isoToIL(v.d)}</td><td>${v.tech}</td><td class="${cls}">${v.type||'—'}</td></tr>`;}).join('');
   } else tbody.innerHTML='<tr><td colspan="3" style="color:#3a6080;text-align:center">אין היסטוריה</td></tr>';
 
   document.getElementById('overlay').classList.add('open');
