@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPC-TEC Dashboard — 09/04/2026 10:12</title>
+<title>EPC-TEC Dashboard — 09/04/2026 10:28</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -127,6 +127,8 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 .meter-bar{display:inline-block;height:8px;background:linear-gradient(90deg,#2a6090,#4acde8);border-radius:4px;vertical-align:middle;margin-right:6px}
 /* ── Round header (section divider in grid) ── */
 .round-header{grid-column:1/-1;padding:6px 14px;background:#1a3050;border-radius:8px;font-size:0.82rem;color:#7dd4ff;font-weight:600;border:1px solid #2a5070;margin-top:6px;letter-spacing:.3px}
+/* ── Round header in tables ── */
+.table-round-header td,.jc-round-header td{background:#1a3050;color:#7dd4ff;font-weight:600;padding:6px 10px;border-bottom:2px solid #2a5070;letter-spacing:.3px;font-size:0.82rem}
 /* ── Alert/Violation card highlight ── */
 .card.has-alert{border:2px solid #ff5252!important;background:rgba(60,15,15,0.35)}
 .card.has-alert:hover{border-color:#ff8a80!important;box-shadow:0 6px 18px rgba(180,30,30,.35)}
@@ -153,7 +155,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 <body>
 <div class="header">
   <div class="logo">⚡ EPC-TEC Dashboard</div>
-  <div class="header-date">עודכן: 09/04/2026 10:12 | מאנדיי + SMS Live</div>
+  <div class="header-date">עודכן: 09/04/2026 10:28 | מאנדיי + SMS Live</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
@@ -162,7 +164,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
   <div class="tab" onclick="switchTab('meters')">💧 מדי ספיקה <span class="alert-tab-badge">28</span></div>
   <div class="tab" onclick="switchTab('gears')">⚙️ מגרזות/משמנות</div>
   <div class="tab" onclick="switchTab('blades')">🔧 להבי מדחס <span class="alert-tab-badge">11</span></div>
-  <div class="tab" onclick="switchTab('biobiot')">🚽 ביוביות <span class="alert-tab-badge">14</span></div>
+  <div class="tab" onclick="switchTab('biobiot')">🚽 ביוביות <span class="alert-tab-badge">15</span></div>
   <div class="tab" onclick="switchTab('viols')">🔬 חריגות דיגומים</div>
   <div class="tab" onclick="switchTab('comply')">📊 ציות חודשי</div>
 </div>
@@ -270,7 +272,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
         <div class="section-title">📅 היסטוריית ביקורים</div>
         <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
       </div>
-      <div class="modal-source">מקור: Monday.com + SMS4Free · 09/04/2026 10:12</div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 09/04/2026 10:28</div>
     </div>
   </div>
 </div>
@@ -281,7 +283,7 @@ const OPEN_ALERTS = [{"facility": "מט\"ש צפע", "content": "תקלה במש
 const JC_ISSUES = [{"f": "צפע", "t": "ביו-רובי", "d": "2026-03-31", "text": "הלקוח השלים חיבור למערך הקולחים", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "צפע", "t": "ביו-רובי", "d": "2026-03-31", "text": "לאחר החג יבוצע סיור להפעלת המערך", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "חיפה כימקלים", "t": "ביו-דיסק", "d": "2026-03-31", "text": "יש לבדוק האם ניתן להמשיך עם האלקטרודות הקיימות או שיש צורך להחליפן לאחר תקופת העבודה הנוכחית", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "נטועה", "t": "ביו-דיסק", "d": "2026-03-30", "text": "פינוי מגבונים מסביב למתקן", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "סונול- עמודים", "t": "ביו-רובי", "d": "2026-03-30", "text": "פינוי פסולת וגזם במתחם", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "גיתה", "t": "ביו-דיסק", "d": "2026-03-30", "text": "1.יש להחליף צינור גן קרוע לשטיפות 8 מטר.", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "גיתה", "t": "ביו-דיסק", "d": "2026-03-30", "text": "2.הצעת מחיר מחודשת להוספת מיכל איסוף בוצה.", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "חניון בארות", "t": "ביו-רובי", "d": "2026-03-30", "text": "בוצעה שאיבה   במיכל איזון ובור רקב על פי דרישה.", "s": "דרוש טיפול", "tech": "Bar"}, {"f": "בית הערבה", "t": "ביו-דיסק", "d": "2026-03-25", "text": "להשלים קידוח כניסה חדשה לקולחים.", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "כיכר סדום", "t": "ביו-דיסק", "d": "2026-03-25", "text": "פינוי הפח של המגוב.", "s": "אושר ע\"י גורם מטפל", "tech": "Ben"}, {"f": "כיכר סדום", "t": "ביו-דיסק", "d": "2026-03-25", "text": "פינוי הפסולת של המשאבות קולחים הישנות.", "s": "אושר ע\"י גורם מטפל", "tech": "Ben"}, {"f": "צומת הלידו", "t": "ביו-רובי", "d": "2026-03-25", "text": "בוצע פינוי בור רקב לאחרונה", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-03-23", "text": "גיזום צמחייה", "s": "אושר ע\"י גורם מטפל", "tech": "itzik"}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-03-23", "text": "התקנת מצלמת רשת", "s": "אושר ע\"י גורם מטפל", "tech": "itzik"}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-03-23", "text": "פינוי שומנים", "s": "אושר ע\"י גורם מטפל", "tech": "itzik"}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-03-23", "text": "אספקת כלור נוזלי", "s": "אושר ע\"י גורם מטפל", "tech": "itzik"}, {"f": "דרום הר חברון- מעלה חבר", "t": "ביו-דיסק", "d": "2026-03-23", "text": "לחייב עבור ברז ומחבר מכאני 2 צול", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "בית אריה", "t": "ביו-דיסק", "d": "2026-03-19", "text": "איסוף והובלת לוח ראשי ישן ולוח סינון מקורי מבית אריה והחזרת ציוד חשמל", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "בית אריה", "t": "ביו-דיסק", "d": "2026-03-19", "text": "שנותר בעופרים.", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "נטועה", "t": "ביו-דיסק", "d": "2026-03-19", "text": "לסדר את הפלסטיקה של המפסק של הדיסקים ( הוא השתחרר וצריך להדביק אותו בחזרה)", "s": "הועבר לגורם מטפל", "tech": "Bar"}, {"f": "משואה", "t": "ביו-דיסק", "d": "2026-03-18", "text": "1.לוודא תקינות שעון לחץ ליד משאבת הקולחים", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "משואה", "t": "ביו-דיסק", "d": "2026-03-18", "text": "2.להזמין אל חוזר קולחים חלופי למלאי", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "משואה", "t": "ביו-דיסק", "d": "2026-03-18", "text": "3.לחבר הארכה לצינורות ניקוז מי הפיקוד של המסננים.", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "חאן שער הגיא", "t": "ביו-דיסק", "d": "2026-03-17", "text": "לבקש שוב חרמש וריסוס", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "חאן שער הגיא", "t": "ביו-דיסק", "d": "2026-03-17", "text": "לבקש שוב לטפל בממטרות", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "מעלה עמוס", "t": "ביו-דיסק", "d": "2026-03-17", "text": "לשלוח הצעת מחיר עבור החלפה של משאבת איזון", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-03-16", "text": "תכנון וביצוע טיפול בכלורינטור:", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-03-16", "text": "החלפת גומיות 6\"", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-03-16", "text": "ואיטום תחתית מנירוסטה", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "בית אריזה בית - שדות נגב", "t": "ביו-רובי", "d": "2026-02-24", "text": "דיגום מיכל איסוף-לא בוצע, חוסר מים במיכל.", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "בית אריזה בית - שדות נגב", "t": "ביו-רובי", "d": "2026-02-24", "text": "לפי ערן רוקנו לטובת פינוי חול.", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "נטועה", "t": "ביו-דיסק", "d": "2026-02-17", "text": "סיום איזון דיסקים", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "אבנת", "t": "ביו-דיסק", "d": "2026-02-11", "text": "תכנון הגדלת מתקן", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "אשלג סדום", "t": "ביו-רובי", "d": "2026-02-10", "text": "נמצאה גלישה רגעית ממיכל הקולחים,", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "עופרים", "t": "ביו-דיסק", "d": "2026-02-03", "text": "להזמין ביובית לשאיבה של מלכודת אבנים", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "גני רמת הנדיב", "t": "ביו-דיסק", "d": "2026-02-02", "text": "גג המתקן מתפורר לאט לאט.", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "גני רמת הנדיב", "t": "ביו-דיסק", "d": "2026-02-02", "text": "דוד ראה ואמר שהשנה מתחברים לקו ביוב", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-01-29", "text": "המשך תידלוק גנרטור", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-01-29", "text": "תכנות בקר מגוב לטובת הפעלה מרחוק", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "מעלה עמוס", "t": "ביו-דיסק", "d": "2026-01-26", "text": "בדיקת אפשרות ההחלפה של גג היחידה ביריעת PVC", "s": "אושר ע\"י גורם מטפל", "tech": "itzik"}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-01-21", "text": "התקנת תמיכות למשקע", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-01-21", "text": "תיקון או החלפת כלורינטור", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "חיפה כימקלים", "t": "ביו-דיסק", "d": "2026-01-21", "text": "מעקב שאיבות ביובית ותהליך במתקן", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "בית הערבה", "t": "ביו-דיסק", "d": "2026-01-19", "text": "הזמנה של ביובית לשאיבה של מיכל ויסות", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-01-12", "text": "הצעת מחיר לתותח השקייה", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-01-12", "text": "ואביזרים לאביחי החקלאי.", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "אשלים B", "t": "ביו-רובי", "d": "2026-01-05", "text": "יש לשלוח לסלומון סיכום ספיקות קולחים לשנת 2025.", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "צפע", "t": "ביו-רובי", "d": "2025-12-23", "text": "בוצעו עבודות להכנת שטח פיזור:", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "צפע", "t": "ביו-רובי", "d": "2025-12-23", "text": "פינוי צמחייה וצנרת ישנה.", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "צפע", "t": "ביו-רובי", "d": "2025-12-23", "text": "תואם סיור עם שרון ממשרד הבריאות לחמישי הקרוב.", "s": "הועבר לגורם מטפל", "tech": "itzik"}, {"f": "גיתה", "t": "ביו-דיסק", "d": "2025-12-10", "text": "לקדם הוספה ממסר חוסר פאזה בלוח חשמל", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "אבנת", "t": "ביו-דיסק", "d": "2025-12-09", "text": "התקנת מצופי התרעה על גלישה באיזון ובאיגום", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "אבנת", "t": "ביו-דיסק", "d": "2025-12-09", "text": "כולל סלילת כבלים וחיווט בלוח", "s": "דרוש טיפול", "tech": "itzik"}, {"f": "מעלה עמוס", "t": "ביו-דיסק", "d": "2025-12-08", "text": "טיפול בגג הביו דיסק", "s": "אושר ע\"י גורם מטפל", "tech": "itzik"}, {"f": "צפע", "t": "ביו-רובי", "d": "2025-11-27", "text": "בור רקב נשאב אתמול", "s": "הועבר לגורם מטפל", "tech": "Ben"}, {"f": "בית הערבה", "t": "ביו-דיסק", "d": "2025-11-12", "text": "להמשיך להיות בקשר עם יניב על מערך פיזור הקולחים", "s": "הועבר לגורם מטפל", "tech": "Ben"}];
 const JC_METERS = [{"f": "אבנת", "t": "ביו-דיסק", "d": "2026-03-10", "m": "17.6", "mv": 17.6, "w": ""}, {"f": "אפרסמור", "t": "ביו-רובי", "d": "2026-03-17", "m": "2.9", "mv": 2.9, "w": ""}, {"f": "אשלים B", "t": "ביו-רובי", "d": "2026-03-11", "m": "0.8", "mv": 0.8, "w": ""}, {"f": "בית אריה", "t": "ביו-דיסק", "d": "2026-03-18", "m": "615.0", "mv": 615.0, "w": ""}, {"f": "בית אריזה- בית הערבה", "t": "ביו-רובי", "d": "2026-03-25", "m": "0.3", "mv": 0.3, "w": ""}, {"f": "דור אלון- אורים", "t": "ביו-רובי", "d": "2026-03-18", "m": "1.3", "mv": 1.3, "w": ""}, {"f": "דור אלון- בני ציון", "t": "ביו-רובי", "d": "2026-02-16", "m": "27.8", "mv": 27.8, "w": ""}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-03-23", "m": "1.0", "mv": 1.0, "w": ""}, {"f": "דור אלון- יובלים", "t": "ביו-רובי", "d": "2026-03-11", "m": "6.6", "mv": 6.6, "w": ""}, {"f": "דור אלון- מורן", "t": "ביו-רובי", "d": "2026-03-30", "m": "90.6", "mv": 90.6, "w": ""}, {"f": "דרום הר חברון- מעלה חבר", "t": "ביו-דיסק", "d": "2026-03-23", "m": "24.6", "mv": 24.6, "w": ""}, {"f": "דרום הר חברון- סוסיה", "t": "ביו-דיסק", "d": "2026-03-23", "m": "188.8", "mv": 188.8, "w": ""}, {"f": "הר עמשא", "t": "ביו-דיסק", "d": "2026-03-23", "m": "5057.5", "mv": 5057.5, "w": ""}, {"f": "חאן שער הגיא", "t": "ביו-דיסק", "d": "2026-03-17", "m": "0.1", "mv": 0.1, "w": ""}, {"f": "חוף קלי\"ה", "t": "ביו-רובי", "d": "2026-03-25", "m": "4.1", "mv": 4.1, "w": ""}, {"f": "חיפה כימקלים", "t": "ביו-דיסק", "d": "2026-03-31", "m": "43.3", "mv": 43.3, "w": ""}, {"f": "כיכר סדום", "t": "ביו-דיסק", "d": "2026-03-10", "m": "341.1", "mv": 341.1, "w": ""}, {"f": "משואה", "t": "ביו-דיסק", "d": "2026-01-28", "m": "212.7", "mv": 212.7, "w": ""}, {"f": "ניר יצחק", "t": "ביו-דיסק", "d": "2026-02-24", "m": "14933.3", "mv": 14933.3, "w": ""}, {"f": "סונול- עמודים", "t": "ביו-רובי", "d": "2026-03-30", "m": "2.7", "mv": 2.7, "w": ""}, {"f": "עבדת", "t": "ביו-רובי", "d": "2026-01-05", "m": "0.7", "mv": 0.7, "w": ""}, {"f": "עופרים", "t": "ביו-דיסק", "d": "2026-03-18", "m": "224.0", "mv": 224.0, "w": ""}, {"f": "פז- השקמה", "t": "ביו-רובי", "d": "2026-03-30", "m": "6.8", "mv": 6.8, "w": ""}, {"f": "פז- סילבר", "t": "ביו-רובי", "d": "2026-03-23", "m": "3.8", "mv": 3.8, "w": ""}, {"f": "צומת הלידו", "t": "ביו-רובי", "d": "2026-03-25", "m": "4.7", "mv": 4.7, "w": ""}, {"f": "צפע", "t": "ביו-רובי", "d": "2025-11-27", "m": "0.1", "mv": 0.1, "w": ""}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-03-16", "m": "8.5", "mv": 8.5, "w": ""}, {"f": "שתיל נטו", "t": "ביו-רובי", "d": "2026-03-12", "m": "7.7", "mv": 7.7, "w": ""}];
 const BLADES_DATA = [{"n": "בית אריזה - בית הערבה - שמאל", "g": "", "status": "צריך לבדוק", "last_d": "2025-03-06", "next_check": "2026-04-01", "height": "4.10", "type": "27", "tech": "itzik bar david, Ben Solomon", "overdue": true}, {"n": "בית אריזה - בית הערבה - ימין", "g": "", "status": "צריך לבדוק", "last_d": "2025-03-06", "next_check": "2026-04-01", "height": "4.10", "type": "27", "tech": "", "overdue": true}, {"n": "צומת הלידו - 1 - ימין", "g": "", "status": "הוחלף", "last_d": "2025-10-29", "next_check": "2026-11-01", "height": "4.16", "type": "35", "tech": "", "overdue": false}, {"n": "צומת הלידו - 2 - שמאל", "g": "", "status": "הוחלף", "last_d": "2025-11-26", "next_check": "2026-11-01", "height": "4.16", "type": "35", "tech": "", "overdue": false}, {"n": "ד\"א מורן", "g": "", "status": "נבדק", "last_d": "2024-12-25", "next_check": "2026-06-01", "height": "4.4", "type": "15", "tech": "", "overdue": false}, {"n": "ד\"א גני חוגה", "g": "", "status": "הוחלף", "last_d": "2025-12-17", "next_check": "2026-12-01", "height": "4.8", "type": "18.5", "tech": "", "overdue": false}, {"n": "סונול עמודים", "g": "", "status": "הוחלף", "last_d": "2025-07-08", "next_check": "2026-07-01", "height": "4.16", "type": "35", "tech": "", "overdue": false}, {"n": "ד\"א זכרון", "g": "", "status": "צריך לבדוק", "last_d": "2024-12-10", "next_check": "2026-04-01", "height": "4.8", "type": "18", "tech": "", "overdue": true}, {"n": "ד\"א שימרון", "g": "", "status": "הוחלף", "last_d": "2025-11-13", "next_check": "2026-11-13", "height": "4.4", "type": "16", "tech": "", "overdue": false}, {"n": "ד\"א יובלים", "g": "", "status": "לא פעיל", "last_d": "2020-12-21", "next_check": "", "height": "", "type": "", "tech": "", "overdue": false}, {"n": "בית אריזה - נגב", "g": "", "status": "צריך לבדוק", "last_d": "2025-04-01", "next_check": "2026-04-01", "height": "4.8", "type": "18.5", "tech": "", "overdue": true}, {"n": "ד\"א אורים", "g": "", "status": "צריך לבדוק", "last_d": "2024-10-10", "next_check": "2026-04-01", "height": "4.16", "type": "30", "tech": "", "overdue": true}, {"n": "פז השקמה", "g": "", "status": "צריך לבדוק", "last_d": "2024-08-20", "next_check": "2026-04-01", "height": "4.16", "type": "32", "tech": "", "overdue": true}, {"n": "סונול בית השקמה", "g": "", "status": "הוחלף", "last_d": "2025-08-17", "next_check": "2026-08-20", "height": "4.8", "type": "16", "tech": "", "overdue": false}, {"n": "פז סילבר", "g": "", "status": "צריך לבדוק", "last_d": "2025-03-25", "next_check": "2026-04-01", "height": "4.16", "type": "35", "tech": "", "overdue": true}, {"n": "ד\"א נגבה", "g": "", "status": "הוחלף", "last_d": "2025-11-18", "next_check": "2026-11-18", "height": "4.8", "type": "18.5", "tech": "", "overdue": false}, {"n": "שתיל נטו", "g": "", "status": "צריך לבדוק", "last_d": "2024-04-04", "next_check": "2026-04-01", "height": "4.8", "type": "17", "tech": "", "overdue": true}, {"n": "ד\"א צומת גנים", "g": "", "status": "לא פעיל", "last_d": "2023-05-08", "next_check": "", "height": "", "type": "", "tech": "", "overdue": false}, {"n": "ד\"א בני ציון", "g": "", "status": "הוחלף", "last_d": "2025-10-19", "next_check": "2026-09-01", "height": "4.10", "type": "27", "tech": "", "overdue": false}, {"n": "אפרסמור", "g": "", "status": "הוחלף", "last_d": "2025-11-02", "next_check": "2026-11-01", "height": "4.8", "type": "18.5", "tech": "", "overdue": false}, {"n": "אקוסול", "g": "", "status": "הוחלף", "last_d": "2025-11-03", "next_check": "2026-11-02", "height": "4.8", "type": "18.5", "tech": "", "overdue": false}, {"n": "אשלים B", "g": "", "status": "הוחלף", "last_d": "2026-03-11", "next_check": "2027-03-11", "height": "4.8", "type": "18.5", "tech": "", "overdue": false}, {"n": "עבדת", "g": "", "status": "הוחלף", "last_d": "2025-10-19", "next_check": "2026-09-01", "height": "4.16", "type": "35", "tech": "", "overdue": false}, {"n": "עבדת 2", "g": "", "status": "הוחלף", "last_d": "2025-10-19", "next_check": "2026-09-01", "height": "4.16", "type": "35", "tech": "", "overdue": false}, {"n": "אשלים A", "g": "", "status": "לא פעיל", "last_d": "2024-10-10", "next_check": "2025-10-23", "height": "", "type": "", "tech": "", "overdue": true}, {"n": "אשלג סדום שמאל", "g": "", "status": "צריך לבדוק", "last_d": "2024-04-08", "next_check": "2026-04-01", "height": "4.16", "type": "29", "tech": "", "overdue": true}, {"n": "אשלג סדום ימין", "g": "", "status": "צריך לבדוק", "last_d": "2024-04-08", "next_check": "2026-04-01", "height": "4.16", "type": "29", "tech": "", "overdue": true}, {"n": "צפע", "g": "", "status": "הוחלף", "last_d": "2025-10-01", "next_check": "2026-10-01", "height": "4.8", "type": "18.5", "tech": "", "overdue": false}];
-const BIOBIOT_DATA = [{"n": "ד\"א אורים", "g": "", "last_d": "2025-09-25", "last_s": "בוצע", "count": 0, "days_ago": 196}, {"n": "ערוגות הבושם", "g": "", "last_d": "2025-09-25", "last_s": "בוצע", "count": 0, "days_ago": 196}, {"n": "בית אריה", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 0, "days_ago": 196}, {"n": "עופרים", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 0, "days_ago": 196}, {"n": "משואה", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 0, "days_ago": 196}, {"n": "עבדת", "g": "", "last_d": "2025-09-21", "last_s": "בוצע", "count": 0, "days_ago": 200}, {"n": "ד\"א גן יבנה", "g": "", "last_d": "2025-09-04", "last_s": "בוצע", "count": 0, "days_ago": 217}, {"n": "נטועה", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 0, "days_ago": 235}, {"n": "גיתה", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 0, "days_ago": 235}, {"n": "סונול עמודים", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 0, "days_ago": 235}, {"n": "אפרסמור", "g": "", "last_d": "2024-03-14", "last_s": "", "count": 0, "days_ago": 756}, {"n": "ד\"א בני ציון", "g": "", "last_d": "2023-05-24", "last_s": "", "count": 0, "days_ago": 1051}, {"n": "ד\"א צומת גנים", "g": "", "last_d": "2022-10-02", "last_s": "", "count": 0, "days_ago": 1285}, {"n": "בית אריה", "g": "", "last_d": "2022-08-10", "last_s": "", "count": 0, "days_ago": 1338}, {"n": "בית הערבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "צומת הלידו", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "חוף קלי\"ה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "צובה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א טל שחר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בית האריזה בית הערבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "אבנת", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "קיבוץ אלמוג", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א מורן", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א גני חוגה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א חוקוק", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "רמת הנדיב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א זכרון", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א שימרון", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א יובלים", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ניר יצחק", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "קיבוץ מגן", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "כרם שלום", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בית אריזה - נגב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "סונול בית השקמה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "פז סילבר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א דבירה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ד\"א נגבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "נתיב העשרה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "שתיל נטו", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "הר עמשא", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "פני חבר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "סוסיה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בית חגי", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "אקוסול", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "אשלים B", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "בארות", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "ממשית", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "רותם תעשיות", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "חכ\"ד", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "דור אלון להב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}, {"n": "פז השקמה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null}];
+const BIOBIOT_DATA = [{"n": "חכ\"ד", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום 25"}, {"n": "ממשית", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום 25"}, {"n": "רותם תעשיות", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום 25"}, {"n": "אקוסול", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום 40"}, {"n": "אשלים B", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום 40"}, {"n": "בארות", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום 40"}, {"n": "עבדת", "g": "", "last_d": "2025-09-21", "last_s": "בוצע", "count": 1, "days_ago": 200, "service_round": "דרום 40"}, {"n": "בית חגי", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום הר חברון"}, {"n": "הר עמשא", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום הר חברון"}, {"n": "סוסיה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום הר חברון"}, {"n": "פני חבר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "דרום הר חברון"}, {"n": "בית אריה", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 1, "days_ago": 196, "service_round": "יהודה ושומרון"}, {"n": "משואה", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 1, "days_ago": 196, "service_round": "יהודה ושומרון"}, {"n": "עופרים", "g": "", "last_d": "2025-09-25", "last_s": "", "count": 1, "days_ago": 196, "service_round": "יהודה ושומרון"}, {"n": "בית האריזה בית הערבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "ים המלח"}, {"n": "בית הערבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "ים המלח"}, {"n": "חוף קלי\"ה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "ים המלח"}, {"n": "צומת הלידו", "g": "", "last_d": "2026-02-01", "last_s": "בוצע", "count": 1, "days_ago": 67, "service_round": "ים המלח"}, {"n": "קיבוץ אלמוג", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "ים המלח"}, {"n": "אפרסמור", "g": "", "last_d": "2024-03-14", "last_s": "", "count": 0, "days_ago": 756, "service_round": "מרכז"}, {"n": "ד\"א בני ציון", "g": "", "last_d": "2023-05-24", "last_s": "", "count": 0, "days_ago": 1051, "service_round": "מרכז"}, {"n": "ד\"א טל שחר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "מרכז"}, {"n": "ד\"א צומת גנים", "g": "", "last_d": "2022-10-02", "last_s": "", "count": 0, "days_ago": 1285, "service_round": "מרכז"}, {"n": "צובה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "מרכז"}, {"n": "אבנת", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "סבב 90"}, {"n": "כרם שלום", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "סבב 90"}, {"n": "בית אריזה - נגב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "עוטף דרומי"}, {"n": "ד\"א אורים", "g": "", "last_d": "2026-02-01", "last_s": "בוצע", "count": 2, "days_ago": 67, "service_round": "עוטף דרומי"}, {"n": "ניר יצחק", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "עוטף דרומי"}, {"n": "קיבוץ מגן", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "עוטף דרומי"}, {"n": "ד\"א גן יבנה", "g": "", "last_d": "2026-02-01", "last_s": "בוצע", "count": 2, "days_ago": 67, "service_round": "עוטף צפוני"}, {"n": "ד\"א נגבה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "עוטף צפוני"}, {"n": "נתיב העשרה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "עוטף צפוני"}, {"n": "סונול בית השקמה", "g": "", "last_d": "2026-01-08", "last_s": "בוצע", "count": 1, "days_ago": 91, "service_round": "עוטף צפוני"}, {"n": "פז סילבר", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "עוטף צפוני"}, {"n": "שתיל נטו", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "עוטף צפוני"}, {"n": "ד\"א דבירה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון הנגב"}, {"n": "דור אלון להב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון הנגב"}, {"n": "פז השקמה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון הנגב"}, {"n": "ד\"א גני חוגה", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון מזרחי"}, {"n": "ד\"א חוקוק", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון מזרחי"}, {"n": "ד\"א מורן", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון מזרחי"}, {"n": "גיתה", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 1, "days_ago": 235, "service_round": "צפון מערבי"}, {"n": "ד\"א זכרון", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון מערבי"}, {"n": "ד\"א יובלים", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון מערבי"}, {"n": "ד\"א שימרון", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון מערבי"}, {"n": "נטועה", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 1, "days_ago": 235, "service_round": "צפון מערבי"}, {"n": "סונול עמודים", "g": "", "last_d": "2025-08-17", "last_s": "בוצע", "count": 1, "days_ago": 235, "service_round": "צפון מערבי"}, {"n": "ערוגות הבושם", "g": "", "last_d": "2025-09-25", "last_s": "בוצע", "count": 1, "days_ago": 196, "service_round": "צפון מערבי"}, {"n": "רמת הנדיב", "g": "", "last_d": "", "last_s": "", "count": 0, "days_ago": null, "service_round": "צפון מערבי"}];
 
 let doCI=null,ntuCI=null,flCI=null,curTab='facilities';
 
@@ -291,6 +293,14 @@ function isOverdue(d){if(!d)return false;return new Date(d)<new Date();}
 function dateCls(d){if(!d)return '';const diff=(new Date(d)-new Date())/864e5;if(diff<0)return 'style="color:#ff6b6b;font-weight:600"';if(diff<30)return 'style="color:#ffaa33"';return '';}
 function statusBadge(s){const m={'צריך להחליף':'badge-red','צריך לבדוק':'badge-orange','הוחלף':'badge-green','נבדק':'badge-blue','לא נדרש':'badge-grey','לא פעיל':'badge-grey','לא בשירות':'badge-grey'};return`<span class="badge ${m[s]||'badge-grey'}">${s||'—'}</span>`;}
 function isoToIL(d){if(!d)return'—';const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;}
+
+// ── Service round helpers ──────────────────────────────────────────────────────
+function getRound(name){const f=FAC.find(x=>x.n===name);return f?(f.service_round||'ללא סבב'):'ללא סבב';}
+function groupByRound(items,getRoundFn){
+  const map={};
+  items.forEach(item=>{const r=getRoundFn(item)||'ללא סבב';if(!map[r])map[r]=[];map[r].push(item);});
+  return Object.entries(map).sort((a,b)=>{if(a[0]==='ללא סבב')return 1;if(b[0]==='ללא סבב')return -1;return a[0].localeCompare(b[0],'he');});
+}
 
 function switchTab(tab){
   curTab=tab;
@@ -398,63 +408,87 @@ function renderFacilities(q){
 }
 
 function renderGears(q){
-  const rows=FAC.filter(f=>f.gears&&f.gears.length).flatMap(f=>f.gears.map(g=>Object.assign({fac:f.n},g))).filter(r=>!q||r.fac.includes(q)||r.n.includes(q));
+  const rows=FAC.filter(f=>f.gears&&f.gears.length).flatMap(f=>f.gears.map(g=>Object.assign({fac:f.n,svcRound:f.service_round||'ללא סבב'},g))).filter(r=>!q||r.fac.includes(q)||r.n.includes(q));
   document.getElementById('stats').innerHTML=`${rows.length} רשומות | מגרזות/משמנות`;
   document.getElementById('table-head').innerHTML=`<tr><th>מתקן</th><th>פריט</th><th>סטטוס</th><th>החלפה אחרונה</th><th>החלפה הבאה</th><th>כמות</th><th>חשבון</th></tr>`;
-  document.getElementById('table-body').innerHTML=rows.map(r=>`<tr style="${isOverdue(r.next)&&r.status!=='הוחלף'?'background:#1a0808':''}">
-    <td style="font-weight:600;color:#e8f4ff">${r.fac}</td><td style="color:#aac8e0">${r.n}</td>
-    <td>${statusBadge(r.status)}</td><td style="font-size:0.8rem">${isoToIL(r.last)}</td>
-    <td ${dateCls(r.next)} style="font-size:0.8rem">${isoToIL(r.next)}</td>
-    <td style="font-size:0.8rem;color:#aac8e0">${r.qty||'—'}</td>
-    <td><span class="badge ${r.account==='ט.ל.'?'badge-blue':'badge-grey'}">${r.account||''}</span></td>
-  </tr>`).join('');
+  const groups=groupByRound(rows,r=>r.svcRound);
+  let html='';
+  for(const [round,groupRows] of groups){
+    html+=`<tr class="table-round-header"><td colspan="7">📍 ${round}</td></tr>`;
+    html+=groupRows.map(r=>`<tr style="${isOverdue(r.next)&&r.status!=='הוחלף'?'background:#1a0808':''}">
+      <td style="font-weight:600;color:#e8f4ff">${r.fac}</td><td style="color:#aac8e0">${r.n}</td>
+      <td>${statusBadge(r.status)}</td><td style="font-size:0.8rem">${isoToIL(r.last)}</td>
+      <td ${dateCls(r.next)} style="font-size:0.8rem">${isoToIL(r.next)}</td>
+      <td style="font-size:0.8rem;color:#aac8e0">${r.qty||'—'}</td>
+      <td><span class="badge ${r.account==='ט.ל.'?'badge-blue':'badge-grey'}">${r.account||''}</span></td>
+    </tr>`).join('');
+  }
+  document.getElementById('table-body').innerHTML=html||'<tr><td colspan="7" class="no-data">אין נתונים</td></tr>';
 }
 
 function renderBlades(q){
-  const rows=BLADES_DATA.filter(r=>!q||r.n.includes(q)||r.g.includes(q));
+  const rows=BLADES_DATA.filter(r=>!q||r.n.includes(q)||(r.g&&r.g.includes(q)));
   const needsCheck=rows.filter(r=>r.status==='צריך לבדוק'||r.status==='נבדק').length;
   document.getElementById('stats').innerHTML=`${rows.length} מדחסים | ${needsCheck} לבדיקה`;
   document.getElementById('table-head').innerHTML=`<tr><th>מתקן/מדחס</th><th>אזור</th><th>סטטוס</th><th>החלפה אחרונה</th><th>בדיקה הבאה</th><th>גובה להב</th><th>סוג</th></tr>`;
-  document.getElementById('table-body').innerHTML=rows.map(r=>`<tr style="${r.overdue&&r.status==='צריך לבדוק'?'background:#1a0808':''}">
-    <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
-    <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
-    <td>${statusBadge(r.status)}</td>
-    <td style="font-size:0.8rem">${isoToIL(r.last_d)}</td>
-    <td ${dateCls(r.next_check)} style="font-size:0.8rem">${isoToIL(r.next_check)}</td>
-    <td style="font-size:0.8rem;color:#aac8e0">${r.height||'—'} mm</td>
-    <td style="font-size:0.8rem;color:#aac8e0">${r.type||'—'}</td>
-  </tr>`).join('');
+  const groups=groupByRound(rows,r=>r.g||'ללא אזור');
+  let html='';
+  for(const [area,groupRows] of groups){
+    html+=`<tr class="table-round-header"><td colspan="7">📍 ${area}</td></tr>`;
+    html+=groupRows.map(r=>`<tr style="${r.overdue&&r.status==='צריך לבדוק'?'background:#1a0808':''}">
+      <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
+      <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="font-size:0.8rem">${isoToIL(r.last_d)}</td>
+      <td ${dateCls(r.next_check)} style="font-size:0.8rem">${isoToIL(r.next_check)}</td>
+      <td style="font-size:0.8rem;color:#aac8e0">${r.height||'—'} mm</td>
+      <td style="font-size:0.8rem;color:#aac8e0">${r.type||'—'}</td>
+    </tr>`).join('');
+  }
+  document.getElementById('table-body').innerHTML=html||'<tr><td colspan="7" class="no-data">אין נתונים</td></tr>';
 }
 
 function renderBiobiot(q){
-  const rows=BIOBIOT_DATA.filter(r=>!q||r.n.includes(q)||r.g.includes(q));
+  const rows=BIOBIOT_DATA.filter(r=>!q||r.n.includes(q)||(r.g&&r.g.includes(q)));
   const withData=rows.filter(r=>r.last_d).length;
   document.getElementById('biobiot-stats').innerHTML=`${rows.length} מתקנים | ${withData} עם נתוני שאיבה`;
   document.getElementById('biobiot-head').innerHTML=`<tr><th>מתקן</th><th>אזור</th><th>שאיבה אחרונה</th><th>סטטוס</th><th>ימים מאז</th><th>מס' שאיבות</th></tr>`;
-  document.getElementById('biobiot-body').innerHTML=rows.map(r=>{
-    const daysAgo=r.days_ago;
-    const daysStyle=daysAgo===null?'color:#555':daysAgo>365?'color:#ff6b6b;font-weight:600':daysAgo>180?'color:#ffa066':'color:#7ec8a0';
-    const daysText=daysAgo===null?'—':`${daysAgo} ימים`;
-    return `<tr>
-      <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
-      <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
-      <td style="font-size:0.8rem">${isoToIL(r.last_d)}</td>
-      <td>${r.last_s?`<span class="status-pill" style="background:#2a5a2a;color:#7ec8a0;padding:2px 8px;border-radius:10px;font-size:0.75rem">${r.last_s}</span>`:'<span style="color:#444">—</span>'}</td>
-      <td style="font-size:0.9rem;${daysStyle}">${daysText}</td>
-      <td style="text-align:center;color:#aac8e0">${r.count||0}</td>
-    </tr>`;
-  }).join('');
+  const groups=groupByRound(rows,r=>r.service_round||'ללא סבב');
+  let html='';
+  for(const [round,groupRows] of groups){
+    html+=`<tr class="table-round-header"><td colspan="6">📍 ${round}</td></tr>`;
+    html+=groupRows.map(r=>{
+      const daysAgo=r.days_ago;
+      const daysStyle=daysAgo===null?'color:#555':daysAgo>365?'color:#ff6b6b;font-weight:600':daysAgo>180?'color:#ffa066':'color:#7ec8a0';
+      const daysText=daysAgo===null?'—':`${daysAgo} ימים`;
+      return `<tr>
+        <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
+        <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
+        <td style="font-size:0.8rem">${isoToIL(r.last_d)}</td>
+        <td>${r.last_s?`<span class="status-pill" style="background:#2a5a2a;color:#7ec8a0;padding:2px 8px;border-radius:10px;font-size:0.75rem">${r.last_s}</span>`:'<span style="color:#444">—</span>'}</td>
+        <td style="font-size:0.9rem;${daysStyle}">${daysText}</td>
+        <td style="text-align:center;color:#aac8e0">${r.count||0}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('biobiot-body').innerHTML=html||'<tr><td colspan="6" class="no-data">אין נתונים</td></tr>';
 }
 
 function renderViols(q){
-  const rows=FAC.filter(f=>f.violations&&f.violations.length).flatMap(f=>f.violations.map(v=>Object.assign({fac:f.n},v))).filter(r=>!q||r.fac.includes(q)||r.n.includes(q));
+  const rows=FAC.filter(f=>f.violations&&f.violations.length).flatMap(f=>f.violations.map(v=>Object.assign({fac:f.n,svcRound:f.service_round||'ללא סבב'},v))).filter(r=>!q||r.fac.includes(q)||(r.params&&r.params.includes(q)));
   document.getElementById('stats').innerHTML=`${rows.length} חריגות | דיגומים`;
   document.getElementById('table-head').innerHTML=`<tr><th>מתקן</th><th>פרמטרים</th><th>סטטוס</th></tr>`;
-  document.getElementById('table-body').innerHTML=rows.map(r=>`<tr>
-    <td style="font-weight:600;color:#e8f4ff">${r.fac}</td>
-    <td style="color:#ff99cc;font-size:0.82rem">${r.params||'—'}</td>
-    <td><span class="badge ${r.status==='לא נשלח'?'badge-red':'badge-orange'}">${r.status||'—'}</span></td>
-  </tr>`).join('');
+  const groups=groupByRound(rows,r=>r.svcRound);
+  let html='';
+  for(const [round,groupRows] of groups){
+    html+=`<tr class="table-round-header"><td colspan="3">📍 ${round}</td></tr>`;
+    html+=groupRows.map(r=>`<tr>
+      <td style="font-weight:600;color:#e8f4ff">${r.fac}</td>
+      <td style="color:#ff99cc;font-size:0.82rem">${r.params||'—'}</td>
+      <td><span class="badge ${r.status==='לא נשלח'?'badge-red':'badge-orange'}">${r.status||'—'}</span></td>
+    </tr>`).join('');
+  }
+  document.getElementById('table-body').innerHTML=html||'<tr><td colspan="3" class="no-data">אין חריגות</td></tr>';
 }
 
 function renderMonIssues(q){
@@ -470,16 +504,24 @@ function renderMonIssues(q){
      <span class="stat-badge sb-ok">💰 ${price} הצעות מחיר</span>`;
   document.getElementById('jc-issues-head').innerHTML=`<tr><th>מתקן</th><th>סוג</th><th>נושא לטיפול</th><th>סטטוס</th><th>טכנאי</th><th>תאריך</th></tr>`;
   const statusCls={'דרוש טיפול':'sp-urgent','הועבר לגורם מטפל':'sp-refer','נשלחה הצעת מחיר':'sp-price','אושר ע"י גורם מטפל':'sp-other'};
-  document.getElementById('jc-issues-body').innerHTML=filtered.length
-    ? filtered.map(i=>`<tr>
-        <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${i.f}</td>
-        <td><span style="font-size:0.7rem;color:${i.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${i.t}</span></td>
-        <td style="max-width:420px;line-height:1.45;color:#d0e4f5">${i.text}</td>
-        <td><span class="status-pill ${statusCls[i.s]||'sp-other'}">${i.s}</span></td>
-        <td style="color:#7a9abb;font-size:0.78rem">${i.tech||'—'}</td>
-        <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${isoToIL(i.d)}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="6" class="no-data">אין נושאים פתוחים</td></tr>';
+  if(!filtered.length){
+    document.getElementById('jc-issues-body').innerHTML='<tr><td colspan="6" class="no-data">אין נושאים פתוחים</td></tr>';
+    return;
+  }
+  const groups=groupByRound(filtered,i=>getRound(i.f));
+  let html='';
+  for(const [round,groupRows] of groups){
+    html+=`<tr class="jc-round-header"><td colspan="6">📍 ${round}</td></tr>`;
+    html+=groupRows.map(i=>`<tr>
+      <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${i.f}</td>
+      <td><span style="font-size:0.7rem;color:${i.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${i.t}</span></td>
+      <td style="max-width:420px;line-height:1.45;color:#d0e4f5">${i.text}</td>
+      <td><span class="status-pill ${statusCls[i.s]||'sp-other'}">${i.s}</span></td>
+      <td style="color:#7a9abb;font-size:0.78rem">${i.tech||'—'}</td>
+      <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${isoToIL(i.d)}</td>
+    </tr>`).join('');
+  }
+  document.getElementById('jc-issues-body').innerHTML=html;
 }
 
 function renderMeters(q){
@@ -490,21 +532,24 @@ function renderMeters(q){
     `<span style="color:#aac8e0;font-weight:600">💧 מדי ספיקה קולחים (מ"ק מצטבר) — ז'אן קלוד</span>
      <span style="color:#5a8aaa">${filtered.length} מתקנים עם קריאות</span>`;
   document.getElementById('jc-meters-head').innerHTML=`<tr><th>מתקן</th><th>סוג</th><th>קריאה מצטברת (מ"ק)</th><th>גרף יחסי</th><th>טכנאי</th><th>תאריך קריאה</th></tr>`;
-  const sorted=[...filtered].sort((a,b)=>b.mv-a.mv);
-  document.getElementById('jc-meters-body').innerHTML=sorted.length
-    ? sorted.map(m=>{
-        const pct=Math.round((m.mv/maxMv)*180);
-        const mv=parseFloat(m.m.replace(',','')).toLocaleString('he-IL');
-        return`<tr>
-          <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${m.f}</td>
-          <td><span style="font-size:0.7rem;color:${m.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${m.t}</span></td>
-          <td class="meter-ok">${mv}</td>
-          <td><span class="meter-bar" style="width:${pct}px"></span></td>
-          <td style="color:#7a9abb;font-size:0.78rem">${m.w||'—'}</td>
-          <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${isoToIL(m.d)}</td>
-        </tr>`;
-      }).join('')
-    : '<tr><td colspan="6" class="no-data">אין נתוני מד ספיקה</td></tr>';
+  const groups=groupByRound(filtered,m=>getRound(m.f));
+  let html='';
+  for(const [round,groupRows] of groups){
+    html+=`<tr class="jc-round-header"><td colspan="6">📍 ${round}</td></tr>`;
+    html+=groupRows.map(m=>{
+      const pct=Math.round((m.mv/maxMv)*180);
+      const mv=parseFloat(m.m.replace(',','')).toLocaleString('he-IL');
+      return`<tr>
+        <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${m.f}</td>
+        <td><span style="font-size:0.7rem;color:${m.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${m.t}</span></td>
+        <td class="meter-ok">${mv}</td>
+        <td><span class="meter-bar" style="width:${pct}px"></span></td>
+        <td style="color:#7a9abb;font-size:0.78rem">${m.w||'—'}</td>
+        <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${isoToIL(m.d)}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('jc-meters-body').innerHTML=html||'<tr><td colspan="6" class="no-data">אין נתוני מד ספיקה</td></tr>';
 }
 
 function openModal(idx){
@@ -752,8 +797,6 @@ function renderComply(){
     return {f,vAct,sAct,vOk,sOk,status};
   });
 
-  rows.sort((a,b)=>a.status-b.status);
-
   const crit=rows.filter(r=>r.status===0).length;
   const warn=rows.filter(r=>r.status===1).length;
   const ok=rows.filter(r=>r.status===2).length;
@@ -766,18 +809,30 @@ function renderComply(){
   document.getElementById('comply-head').innerHTML=
     `<tr><th>מתקן</th><th>סוג</th><th>סבב שירות</th><th>ביקורים (${HE_MONTHS[mo-1]})</th><th>דיגומים (${HE_MONTHS[mo-1]})</th><th>ביקור אחרון</th></tr>`;
 
-  document.getElementById('comply-body').innerHTML=rows.map(r=>{
-    const f=r.f;
-    const rowBg=r.status===0?'background:#1a0808':r.status===1?'background:#1a1200':'';
-    return `<tr style="${rowBg}">
-      <td style="font-weight:600;color:#e8f4ff;cursor:pointer" onclick="openModal(${FAC.indexOf(f)})">${f.n}</td>
-      <td><span style="font-size:0.72rem;color:${f.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${f.t||'—'}</span></td>
-      <td style="color:#8ab0d0;font-size:0.78rem">${f.service_round||'—'}</td>
-      <td>${complyBadge(r.vAct,parseFreqReq(f.visit_freq).n,f.visit_freq,complyMonth)}</td>
-      <td>${complyBadge(r.sAct,parseFreqReq(f.sample_freq).n,f.sample_freq,complyMonth)}</td>
-      <td style="font-size:0.78rem;color:#5a8aaa">${isoToIL(f.lv)||'—'}</td>
-    </tr>`;
-  }).join('');
+  // Group by service_round, sort by status within each group
+  const groups=groupByRound(rows,r=>r.f.service_round||'ללא סבב');
+  let html='';
+  for(const [round,groupRows] of groups){
+    const gCrit=groupRows.filter(r=>r.status===0).length;
+    const gWarn=groupRows.filter(r=>r.status===1).length;
+    const critBadge=gCrit?`<span style="font-size:0.72rem;color:#ff8a80;margin-right:8px">❌ ${gCrit}</span>`:'';
+    const warnBadge=gWarn?`<span style="font-size:0.72rem;color:#ffc84a;margin-right:8px">⚠️ ${gWarn}</span>`:'';
+    html+=`<tr><td colspan="6" style="background:#1a3050;color:#7dd4ff;font-weight:600;padding:6px 10px;border-bottom:2px solid #2a5070">📍 ${round} ${critBadge}${warnBadge}<span style="font-size:0.72rem;color:#4a7a9b;font-weight:400">${groupRows.length} מתקנים</span></td></tr>`;
+    groupRows.sort((a,b)=>a.status-b.status);
+    html+=groupRows.map(r=>{
+      const f=r.f;
+      const rowBg=r.status===0?'background:#1a0808':r.status===1?'background:#1a1200':'';
+      return `<tr style="${rowBg}">
+        <td style="font-weight:600;color:#e8f4ff;cursor:pointer" onclick="openModal(${FAC.indexOf(f)})">${f.n}</td>
+        <td><span style="font-size:0.72rem;color:${f.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${f.t||'—'}</span></td>
+        <td style="color:#8ab0d0;font-size:0.78rem">${f.service_round||'—'}</td>
+        <td>${complyBadge(r.vAct,parseFreqReq(f.visit_freq).n,f.visit_freq,complyMonth)}</td>
+        <td>${complyBadge(r.sAct,parseFreqReq(f.sample_freq).n,f.sample_freq,complyMonth)}</td>
+        <td style="font-size:0.78rem;color:#5a8aaa">${isoToIL(f.lv)||'—'}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('comply-body').innerHTML=html;
 }
 
 renderTab();
