@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EPC-TEC Dashboard — 13/04/2026 18:49</title>
+<title>EPC-TEC Dashboard — 13/04/2026 23:06</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -155,7 +155,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 <body>
 <div class="header">
   <div class="logo">⚡ EPC-TEC Dashboard</div>
-  <div class="header-date">עודכן: 13/04/2026 18:49 | מאנדיי + SMS Live</div>
+  <div class="header-date">עודכן: 13/04/2026 23:06 | מאנדיי + SMS Live</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
@@ -281,7 +281,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
         <div class="section-title">📅 היסטוריית ביקורים</div>
         <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
       </div>
-      <div class="modal-source">מקור: Monday.com + SMS4Free · 13/04/2026 18:49</div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 13/04/2026 23:06</div>
     </div>
   </div>
 </div>
@@ -338,6 +338,7 @@ function renderTab(){
   else if(curTab==='biobiot') renderBiobiot(q);
   else if(curTab==='viols') renderViols(q);
   else if(curTab==='comply') renderComply();
+  else if(curTab==='dailystatus') renderDailyStatus(q);
 }
 
 function renderAlerts(q){
@@ -852,6 +853,51 @@ function renderComply(){
     }).join('');
   }
   document.getElementById('comply-body').innerHTML=html;
+}
+
+// ── Daily Status tab ─────────────────────────────────────────────────────────
+function renderDailyStatus(q){
+  const filtered=DAILY_STATUS.filter(d=>!q||d.n.includes(q)||d.sr.includes(q));
+  const okCount=filtered.filter(d=>d.ok).length;
+  const missCount=filtered.filter(d=>!d.ok).length;
+  document.getElementById('stats').innerHTML=
+    `${filtered.length} מתקנים מנוטרים &nbsp;|&nbsp;<span class="stat-badge sb-ok">✅ תקינות נשלחה: ${okCount}</span><span class="stat-badge sb-crit">❌ לא התקבל: ${missCount}</span>`;
+  document.getElementById('daily-header').innerHTML=
+    `<span style="color:#aac8e0;font-weight:600">📡 הודעות תקינות יומית SMS</span>
+     <span class="stat-badge sb-ok">✅ ${okCount} נשלחו</span>
+     <span class="stat-badge sb-crit">❌ ${missCount} חסרים</span>`;
+  document.getElementById('daily-head').innerHTML=
+    `<tr><th>מתקן</th><th>סוג</th><th>סבב שירות</th><th>סטטוס תקינות</th><th>שעת קבלה</th></tr>`;
+  if(!filtered.length){
+    document.getElementById('daily-body').innerHTML='<tr><td colspan="5" class="no-data">אין נתוני תקינות</td></tr>';
+    return;
+  }
+  // Group by service_round — always display by service rounds
+  const groups=groupByRound(filtered,d=>d.sr||'ללא סבב');
+  let html='';
+  for(const [round,groupRows] of groups){
+    const gOk=groupRows.filter(d=>d.ok).length;
+    const gMiss=groupRows.filter(d=>!d.ok).length;
+    const missSpan=gMiss?`<span style="font-size:0.72rem;color:#ff8a80;margin-right:8px">❌ ${gMiss} חסרים</span>`:'';
+    const okSpan=gOk===groupRows.length?`<span style="font-size:0.72rem;color:#4cde8a;margin-right:8px">✅ הכל תקין</span>`:'';
+    html+=`<tr class="jc-round-header"><td colspan="5">📍 ${round} ${missSpan}${okSpan}<span style="font-size:0.72rem;color:#4a7a9b;font-weight:400">${groupRows.length} מתקנים</span></td></tr>`;
+    // Within each group: show missing first
+    const sorted=[...groupRows].sort((a,b)=>a.ok===b.ok?0:a.ok?1:-1);
+    html+=sorted.map(d=>{
+      const statusCell=d.ok
+        ?`<span class="dly-ok" style="font-size:0.8rem;padding:3px 12px">✓ תקינות נשלחה</span>`
+        :`<span class="dly-no" style="font-size:0.8rem;padding:3px 12px">⚠ לא התקבלה</span>`;
+      const rowBg=d.ok?'':'background:#1a0808';
+      return`<tr style="${rowBg}">
+        <td style="font-weight:600;color:#e8f4ff">${d.n}</td>
+        <td><span style="font-size:0.72rem;color:${d.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${d.t}</span></td>
+        <td style="color:#8ab0d0;font-size:0.78rem">${d.sr||'—'}</td>
+        <td>${statusCell}</td>
+        <td style="color:#5a8aaa;font-size:0.82rem">${d.ok&&d.time?d.time:'—'}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('daily-body').innerHTML=html;
 }
 
 renderTab();
