@@ -31,7 +31,7 @@
       }
     ],
     "st": "critical",
-    "service_round": "",
+    "service_round": "מרכז",
     "visit_freq": "2 בחודש",
     "sample_freq": "1 בחודש",
     "gears": [],
@@ -3715,7 +3715,7 @@
   {
     "n": "חוף קלי\"ה",
     "t": "ביו-רובי",
-    "service_round": "",
+    "service_round": "ים המלח",
     "visit_freq": "2 בחודש",
     "sample_freq": "1 בחודש",
     "st": "ok",
