@@ -25,6 +25,27 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 .sb-crit{background:#4a1515;color:#ff8a80;border:1px solid #7a2020}.sb-warn{background:#3d2800;color:#ffc84a;border:1px solid #6a4800}.sb-ok{background:#0f3520;color:#66e09a;border:1px solid #1a6035}
 /* ── Service tracking ── */
 .svc-ok{color:#66e09a;font-weight:600}.svc-part{color:#ffc84a;font-weight:600}.svc-miss{color:#ff8a80;font-weight:600}.svc-na{color:#5c7a96}
+.month-bar{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;background:#18283a;border-bottom:1px solid #2a4060;flex-wrap:nowrap}
+.month-btn{padding:5px 14px;border-radius:20px;border:1px solid #2a4f72;background:#1e3350;color:#7dd4ff;cursor:pointer;font-size:0.8rem;white-space:nowrap;transition:.15s;font-family:inherit}
+.month-btn.active{background:#2a5a8a;border-color:#4a9fd4;color:#fff;font-weight:600}
+.month-btn:hover:not(.active){background:#253d58;border-color:#3a6a8a}
+.svc-pip{display:inline-block;width:14px;height:14px;border-radius:50%;margin:0 2px;vertical-align:middle}
+.svc-pip-ok{background:#66e09a;box-shadow:0 0 5px #66e09a88}
+.svc-pip-part{background:#ffc84a;box-shadow:0 0 5px #ffc84a88}
+.svc-pip-miss{background:#ff8a80}
+.svc-pip-empty{background:#1a2a3c;border:1px solid #3a5570}
+.svc-bar-wrap{display:flex;align-items:center;gap:6px}
+.svc-bar-track{flex:1;height:7px;background:#1a2a3c;border-radius:4px;overflow:hidden;min-width:48px;max-width:70px}
+.svc-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.svc-bar-fill-ok{background:#66e09a}
+.svc-bar-fill-part{background:#ffc84a}
+.svc-bar-fill-miss{background:#ff5252}
+.svc-bar-lbl{font-size:0.78rem;font-weight:700;min-width:28px;text-align:center}
+.month-grid-cell{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:38px;height:38px;border-radius:6px;border:1px solid #2a4060;font-size:0.62rem;color:#7aacce;background:#1a2a3c;transition:.15s;cursor:default}
+.mgc-ok{background:#1a3a2a;border-color:#2e6645;color:#66e09a}
+.mgc-part{background:#3a2e12;border-color:#6a5020;color:#ffc84a}
+.mgc-miss{background:#3a1e1e;border-color:#6a3030;color:#ff8a80}
+.mgc-none{background:#18283a;border-color:#1e3040;color:#3a5570}
 .svc-round table tr:hover{background:#1f3854 !important}
 /* ── Grid ── */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding:14px 16px}
@@ -132,7 +153,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 <body>
 <div class="header">
   <div class="logo">⚡ EPC-TEC Dashboard</div>
-  <div class="header-date">עודכן: 06/05/2026 14:05 | מאנדיי + SMS Live</div>
+  <div class="header-date">עודכן: 06/05/2026 14:13 | מאנדיי + SMS Live</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
@@ -157,8 +178,8 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 
 <!-- Service tracking view -->
 <div id="svc-view" style="display:none">
-  <div id="svc-month-label" style="padding:8px 16px;color:#7dd4ff;font-size:0.88rem;font-weight:600"></div>
-  <div id="svc-rounds" style="padding:0 16px 20px"></div>
+  <div id="svc-month-bar" class="month-bar"></div>
+  <div id="svc-rounds" style="padding:12px 16px 24px"></div>
 </div>
 
 <!-- Alerts view -->
@@ -236,7 +257,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
         <div class="section-title">📅 היסטוריית ביקורים</div>
         <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
       </div>
-      <div class="modal-source">מקור: Monday.com + SMS4Free · 06/05/2026 14:05</div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 06/05/2026 14:13</div>
     </div>
   </div>
 </div>
@@ -297,7 +318,7 @@ function switchTab(tab){
 function renderTab(){
   const q=(document.getElementById('search').value||'').trim();
   if(curTab==='facilities') renderFacilities(q);
-  else if(curTab==='svc') renderSvc(q);
+  else if(curTab==='svc'){renderSvcMonthBar();renderSvc(q);}
   else if(curTab==='alerts') renderAlerts(q);
   else if(curTab==='monissues') renderMonIssues(q);
   else if(curTab==='meters') renderMeters(q);
@@ -394,67 +415,173 @@ function renderFacilities(q){
   }).join('');
 }
 
-function renderSvc(q){
-  const filtered=FAC.filter(f=>!q||f.n.includes(q)||(f.service_round||'').includes(q));
-  const okN=filtered.filter(f=>f.svc_status==='ok').length;
-  const partN=filtered.filter(f=>f.svc_status==='partial').length;
-  const missN=filtered.filter(f=>f.svc_status==='missing').length;
-  const untN=filtered.filter(f=>f.svc_status==='untracked').length;
-  const monthLbl=(filtered.find(f=>f.svc_month)||{}).svc_month||'';
-  document.getElementById('stats').innerHTML=`${filtered.length} מתקנים &nbsp;|&nbsp;<span class="stat-badge sb-ok">✅ ${okN}</span><span class="stat-badge sb-warn">⚡ חלקי ${partN}</span><span class="stat-badge sb-crit">⚠️ חסר ${missN}</span>`+(untN?`<span class="stat-badge" style="background:#37485a;color:#aabbcc">ללא סבב ${untN}</span>`:'');
-  document.getElementById('svc-month-label').innerHTML=`📅 חודש מעקב: <span style="color:#fff">${monthLbl||'—'}</span> · יעד מתוך טבלת רכזת השירות`;
-  const groups={};
-  filtered.forEach(f=>{const r=f.service_round||'(ללא סבב)';if(!groups[r])groups[r]=[];groups[r].push(f);});
-  const sortedRounds=Object.keys(groups).sort((a,b)=>{
-    if(a==='(ללא סבב)')return 1;if(b==='(ללא סבב)')return -1;
-    return a.localeCompare(b,'he');
+function parseFreq(s){
+  if(!s||s==='ללא דיגום'||s==='—')return null;
+  if(s==='רבעוני')return 0.33;
+  const m=s.match(/(\d+)/);
+  return m?parseInt(m[1]):null;
+}
+function monthKey(d){
+  if(!d)return null;
+  const s=String(d).replace(' ','T');
+  const dt=new Date(s);
+  if(isNaN(dt))return null;
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+}
+function monthLabel(k){
+  if(!k)return '';
+  const [y,m]=k.split('-');
+  const names=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  return names[parseInt(m)-1]+' '+y;
+}
+function getAvailMonths(){
+  const s=new Set();
+  FAC.forEach(f=>{
+    (f.vh||[]).forEach(v=>{const k=monthKey(v.d);if(k)s.add(k);});
+    (f.sh||[]).forEach(v=>{const k=monthKey(v.d);if(k)s.add(k);});
   });
+  return Array.from(s).sort().reverse().slice(0,8);
+}
+let _svcMonth=null;
+function renderSvcMonthBar(){
+  const months=getAvailMonths();
+  if(!_svcMonth&&months.length)_svcMonth=months[0];
+  const bar=document.getElementById('svc-month-bar');
+  bar.innerHTML=months.map(k=>`<button class="month-btn${k===_svcMonth?' active':''}" onclick="_svcMonth='${k}';renderSvcMonthBar();renderSvc(document.getElementById('search').value)">${monthLabel(k)}</button>`).join('');
+}
+function makePips(done,req,quarterly){
+  if(quarterly){
+    const ok=done>=1;
+    return`<span class="svc-pip ${ok?'svc-pip-ok':'svc-pip-miss'}"></span><small style="font-size:0.65rem;color:#7aacce"> רבעוני</small>`;
+  }
+  if(req===null||req===0)return`<span style="font-size:0.72rem;color:#5c7a96">—</span>`;
+  const pips=[];
+  for(let i=0;i<req;i++){
+    const cls=i<done?'svc-pip-ok':'svc-pip-empty';
+    pips.push(`<span class="svc-pip ${cls}"></span>`);
+  }
+  if(done>req)pips.push(`<span class="svc-pip svc-pip-ok" style="opacity:.5"></span>`);
+  return pips.join('');
+}
+function makeBar(done,req){
+  if(req===null||req===0)return'<span style="font-size:0.72rem;color:#5c7a96">—</span>';
+  const pct=Math.min(100,Math.round(done/req*100));
+  const cls=done>=req?'svc-bar-fill-ok':done>0?'svc-bar-fill-part':'svc-bar-fill-miss';
+  const lblCls=done>=req?'svc-ok':done>0?'svc-part':'svc-miss';
+  return`<div class="svc-bar-wrap"><div class="svc-bar-track"><div class="svc-bar-fill ${cls}" style="width:${pct}%"></div></div><span class="svc-bar-lbl ${lblCls}">${done}/${req}</span></div>`;
+}
+function renderMiniGrid(f, months){
+  return months.slice(0,6).map(k=>{
+    const vDone=(f.vh||[]).filter(v=>monthKey(v.d)===k).length;
+    const sDone=(f.sh||[]).filter(v=>monthKey(v.d)===k).length;
+    const vReq=parseFreq(f.visit_freq);
+    const sReq=parseFreq(f.sample_freq);
+    let cls='mgc-none';
+    if(vReq!==null||sReq!==null){
+      const vOk=vReq===null||vDone>=vReq;
+      const sOk=sReq===null||sReq===0||sDone>=sReq;
+      if(vOk&&sOk)cls='mgc-ok';
+      else if(vDone>0||sDone>0)cls='mgc-part';
+      else cls='mgc-miss';
+    }
+    const [yr,mo]=k.split('-');
+    const mn=['י','פ','מ','א','מ','י','י','א','ס','א','נ','ד'][parseInt(mo)-1];
+    return`<div class="month-grid-cell ${cls}" title="${monthLabel(k)}: ביקורים ${vDone}, דיגומים ${sDone}">${mn}<span style="font-size:0.58rem">${yr.slice(2)}</span></div>`;
+  }).join('');
+}
+function renderSvc(q){
+  if(!_svcMonth){renderSvcMonthBar();}
+  const selM=_svcMonth;
+  const filtered=FAC.filter(f=>!q||f.n.includes(q)||(f.service_round||'').includes(q));
+  const allMonths=getAvailMonths();
+
+  // חשב סטטיסטיקות לחודש הנבחר
+  let okN=0,partN=0,missN=0;
+  filtered.forEach(f=>{
+    const vDone=(f.vh||[]).filter(v=>monthKey(v.d)===selM).length;
+    const sDone=(f.sh||[]).filter(v=>monthKey(v.d)===selM).length;
+    const vReq=parseFreq(f.visit_freq);
+    const sReq=parseFreq(f.sample_freq);
+    const vOk=vReq===null||vDone>=vReq;
+    const sOk=sReq===null||sReq===0||sDone>=sReq;
+    if(vOk&&sOk)okN++;
+    else if(vDone>0||sDone>0)partN++;
+    else missN++;
+  });
+  document.getElementById('stats').innerHTML=`${filtered.length} מתקנים &nbsp;|&nbsp;<span class="stat-badge sb-ok">✅ ${okN} הושלם</span><span class="stat-badge sb-warn">⚡ ${partN} חלקי</span><span class="stat-badge sb-crit">⚠️ ${missN} חסר</span>`;
+
+  const groups={};
+  filtered.forEach(f=>{const r=f.service_round||'(ללא סבב)';(groups[r]=groups[r]||[]).push(f);});
+  const sortedRounds=Object.keys(groups).sort((a,b)=>{if(a==='(ללא סבב)')return 1;if(b==='(ללא סבב)')return -1;return a.localeCompare(b,'he');});
+
   const html=sortedRounds.map(r=>{
-    const items=groups[r].sort((a,b)=>{
-      const ord={'missing':0,'partial':1,'ok':2,'untracked':3};
-      const oa=ord[a.svc_status]??99,ob=ord[b.svc_status]??99;
-      if(oa!==ob)return oa-ob;
-      return a.n.localeCompare(b.n,'he');
-    });
-    const rOk=items.filter(f=>f.svc_status==='ok').length;
-    const rTotal=items.length;
+    const items=groups[r];
+    let rOk=0,rPart=0,rMiss=0;
     const rRows=items.map(f=>{
       const idx=FAC.indexOf(f);
-      const vReq=f.svc_visits_req_lbl||'—';
-      const sReq=f.svc_samples_req_lbl||'—';
-      const vDone=f.svc_visits_done??0;
-      const sDone=f.svc_samples_done??0;
-      const vReqN=f.svc_visits_req;
-      const sReqN=f.svc_samples_req;
-      const vCls=(vReqN===null)?'svc-na':(vDone>=vReqN?'svc-ok':vDone>0?'svc-part':'svc-miss');
-      const sCls=(sReqN===null)?'svc-na':(sDone>=sReqN?'svc-ok':sDone>0?'svc-part':'svc-miss');
-      const stMap={ok:'svc-ok',partial:'svc-part',missing:'svc-miss',untracked:'svc-na'};
-      const stCls=stMap[f.svc_status]||'';
-      const lblMap={ok:'✅ הושלם',partial:'⚡ חלקי',missing:'⚠️ חסר',untracked:'— ללא סבב'};
-      const stLbl=lblMap[f.svc_status]||'—';
-      return `<tr onclick="openModal(${idx})" style="cursor:pointer">
-        <td>${f.n}</td>
-        <td><span class="type-badge">${f.t}</span></td>
-        <td class="${vCls}">${vDone} / ${vReq}</td>
-        <td class="${sCls}">${sDone} / ${sReq}</td>
-        <td class="${stCls}" style="font-weight:600">${stLbl}</td>
-        <td style="color:#7aacce;font-size:0.78rem">${f.lv||'—'}</td>
+      const vDone=(f.vh||[]).filter(v=>monthKey(v.d)===selM).length;
+      const sDone=(f.sh||[]).filter(v=>monthKey(v.d)===selM).length;
+      const vReq=parseFreq(f.visit_freq);
+      const sReq=parseFreq(f.sample_freq);
+      const quarterly=f.sample_freq==='רבעוני';
+      const vOk=vReq===null||vDone>=vReq;
+      const sOk=sReq===null||sReq===0||sDone>=sReq;
+      let rowSt;
+      if(vOk&&sOk){rowSt='ok';rOk++;}
+      else if(vDone>0||sDone>0){rowSt='part';rPart++;}
+      else{rowSt='miss';rMiss++;}
+      const rowBg=rowSt==='ok'?'#1a2f1a':rowSt==='part'?'#2a2510':'#2a1818';
+      const rowBdr=rowSt==='ok'?'#2e5a3a':rowSt==='part'?'#5a4a20':'#5a2020';
+      const lastV=(f.vh||[]).filter(v=>monthKey(v.d)===selM).slice(-1)[0];
+      return`<tr onclick="openModal(${idx})" style="cursor:pointer;background:${rowBg};border-bottom:1px solid ${rowBdr}">
+        <td style="padding:10px 12px">
+          <div style="font-weight:600;color:#c0d8f0;font-size:0.88rem">${f.n}</div>
+          <div style="font-size:0.7rem;color:#5a8aaa;margin-top:2px">${f.t}</div>
+        </td>
+        <td style="padding:10px 12px;min-width:110px">
+          <div style="font-size:0.68rem;color:#5a8aaa;margin-bottom:4px">ביקורים</div>
+          ${makeBar(vDone,vReq)}
+          <div style="margin-top:4px">${makePips(vDone,vReq??0,false)}</div>
+        </td>
+        <td style="padding:10px 12px;min-width:110px">
+          <div style="font-size:0.68rem;color:#5a8aaa;margin-bottom:4px">דיגומים</div>
+          ${makeBar(sDone,sReq!==null&&sReq<1?1:sReq)}
+          <div style="margin-top:4px">${makePips(sDone,sReq!==null&&sReq<1?1:sReq??0,quarterly)}</div>
+        </td>
+        <td style="padding:10px 12px">
+          <div style="font-size:0.68rem;color:#5a8aaa;margin-bottom:4px">6 חודשים</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap">${renderMiniGrid(f,allMonths)}</div>
+        </td>
+        <td style="padding:10px 12px;color:#7aacce;font-size:0.78rem;white-space:nowrap">${lastV?lastV.d+(lastV.tech?'<br><span style="font-size:0.65rem;color:#4a7a9b">'+lastV.tech+'</span>':''):'—'}</td>
       </tr>`;
     }).join('');
-    return `<div class="svc-round" style="margin-bottom:18px;background:#1a2a3c;border:1px solid #2a4060;border-radius:8px;overflow:hidden">
-      <div class="svc-round-head" style="padding:10px 14px;background:#1e3350;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a4060">
-        <div style="font-weight:700;color:#7dd4ff;font-size:0.95rem">🗺️ ${r}</div>
-        <div style="font-size:0.78rem;color:#aac8e0">${rOk}/${rTotal} הושלם</div>
+    const pct=Math.round(rOk/items.length*100);
+    const barW=pct+'%';
+    const barC=pct===100?'#66e09a':pct>0?'#ffc84a':'#ff5252';
+    return`<div style="margin-bottom:20px;background:#1a2a3c;border:1px solid #2a4060;border-radius:10px;overflow:hidden">
+      <div style="padding:10px 16px;background:#1e3350;border-bottom:1px solid #2a4060">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:700;color:#7dd4ff;font-size:0.95rem">🗺️ ${r}</div>
+          <div style="font-size:0.78rem;color:#aac8e0">${rOk}/${items.length} הושלם &nbsp; <span style="color:#ffc84a">${rPart} חלקי</span> &nbsp; <span style="color:#ff8a80">${rMiss} חסר</span></div>
+        </div>
+        <div style="height:6px;background:#0f1e2e;border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${barW};background:${barC};border-radius:3px;transition:width .4s"></div>
+        </div>
       </div>
-      <table class="jc-table" style="margin:0">
-        <thead><tr><th>מתקן</th><th>סוג</th><th>ביקורים</th><th>דיגומים</th><th>סטטוס</th><th>ביקור אחרון</th></tr></thead>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#182838;border-bottom:1px solid #2a4060">
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">מתקן</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">ביקורים</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">דיגומים</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">היסטוריה</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">ביקור אחרון</th>
+        </tr></thead>
         <tbody>${rRows}</tbody>
       </table>
     </div>`;
   }).join('');
   document.getElementById('svc-rounds').innerHTML=html;
 }
-
 function renderGears(q){
   const rows=FAC.filter(f=>f.gears&&f.gears.length).flatMap(f=>f.gears.map(g=>Object.assign({fac:f.n},g))).filter(r=>!q||r.fac.includes(q)||r.n.includes(q));
   document.getElementById('stats').innerHTML=`${rows.length} רשומות | מגרזות/משמנות`;
