@@ -153,7 +153,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
 <body>
 <div class="header">
   <div class="logo">⚡ EPC-TEC Dashboard</div>
-  <div class="header-date">עודכן: 06/05/2026 15:19 | מאנדיי + SMS Live</div>
+  <div class="header-date">עודכן: 06/05/2026 15:23 | מאנדיי + SMS Live</div>
 </div>
 <div class="tabs">
   <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
@@ -257,7 +257,7 @@ body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;mi
         <div class="section-title">📅 היסטוריית ביקורים</div>
         <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
       </div>
-      <div class="modal-source">מקור: Monday.com + SMS4Free · 06/05/2026 15:19</div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 06/05/2026 15:23</div>
     </div>
   </div>
 </div>
@@ -359,10 +359,16 @@ function renderAlerts(q){
       </div>
     </div>`;
   };
-  const grouped=groupByRound(filtered,a=>a.service_round||a.facility);
-  document.getElementById('alerts-grid').innerHTML=grouped.map(g=>
-    `<div style="grid-column:1/-1">${roundSectionHead(g.round,g.items.length,'התראות')}</div>`+
-    `<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${g.items.map(renderCard).join('')}</div>`
+  // קיבוץ ישיר לפי service_round (לא דרך roundOf שמחפש שם קנוני)
+  const roundGroups={};
+  filtered.forEach(a=>{
+    const k=a.service_round||'(ללא סבב)';
+    (roundGroups[k]=roundGroups[k]||[]).push(a);
+  });
+  const sortedRounds=sortRounds(Object.keys(roundGroups));
+  document.getElementById('alerts-grid').innerHTML=sortedRounds.map(r=>
+    `<div style="grid-column:1/-1">${roundSectionHead(r,roundGroups[r].length,'התראות')}</div>`+
+    `<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${roundGroups[r].map(renderCard).join('')}</div>`
   ).join('');
 }
 
