@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPC-TEC Dashboard — 28/05/2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1e2f42;color:#d0e4f5;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;direction:rtl}
+/* ── Header ── */
+.header{background:linear-gradient(135deg,#1a3550 0%,#204878 100%);border-bottom:1px solid #2a5070;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.logo{font-size:1.1rem;font-weight:700;color:#7dd4ff;letter-spacing:.5px}
+.header-date{font-size:0.75rem;color:#7aacce}
+/* ── Tabs ── */
+.tabs{display:flex;gap:4px;padding:12px 16px 0;background:#1a2a3c;border-bottom:1px solid #2a4060;overflow-x:auto}
+.tab{padding:8px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-size:0.82rem;color:#6a9abb;border:1px solid transparent;border-bottom:none;white-space:nowrap;transition:.2s;background:#1e3350}
+.tab.active{background:#253d58;color:#7dd4ff;border-color:#2a4f72;border-bottom-color:#253d58;font-weight:700;box-shadow:0 -2px 6px rgba(0,0,0,.2)}
+.tab:hover:not(.active){color:#9ac8e8;background:#223048}
+/* ── Toolbar ── */
+.toolbar{padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#1c2d40;border-bottom:1px solid #263d56}
+#search{background:#253d58;border:1px solid #2e5070;color:#d0e4f5;padding:6px 12px;border-radius:8px;font-size:0.82rem;width:200px;direction:rtl}
+#search:focus{outline:none;border-color:#4a9fd4;box-shadow:0 0 0 2px rgba(74,159,212,.2)}
+.stat-badge{padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;margin-right:4px}
+.sb-crit{background:#4a1515;color:#ff8a80;border:1px solid #7a2020}.sb-warn{background:#3d2800;color:#ffc84a;border:1px solid #6a4800}.sb-ok{background:#0f3520;color:#66e09a;border:1px solid #1a6035}
+/* ── Service tracking ── */
+.svc-ok{color:#66e09a;font-weight:600}.svc-part{color:#ffc84a;font-weight:600}.svc-miss{color:#ff8a80;font-weight:600}.svc-na{color:#5c7a96}
+.month-bar{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;background:#18283a;border-bottom:1px solid #2a4060;flex-wrap:nowrap}
+.month-btn{padding:5px 14px;border-radius:20px;border:1px solid #2a4f72;background:#1e3350;color:#7dd4ff;cursor:pointer;font-size:0.8rem;white-space:nowrap;transition:.15s;font-family:inherit}
+.month-btn.active{background:#2a5a8a;border-color:#4a9fd4;color:#fff;font-weight:600}
+.month-btn:hover:not(.active){background:#253d58;border-color:#3a6a8a}
+.svc-pip{display:inline-block;width:14px;height:14px;border-radius:50%;margin:0 2px;vertical-align:middle}
+.svc-pip-ok{background:#66e09a;box-shadow:0 0 5px #66e09a88}
+.svc-pip-part{background:#ffc84a;box-shadow:0 0 5px #ffc84a88}
+.svc-pip-miss{background:#ff8a80}
+.svc-pip-empty{background:#1a2a3c;border:1px solid #3a5570}
+.svc-bar-wrap{display:flex;align-items:center;gap:6px}
+.svc-bar-track{flex:1;height:7px;background:#1a2a3c;border-radius:4px;overflow:hidden;min-width:48px;max-width:70px}
+.svc-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.svc-bar-fill-ok{background:#66e09a}
+.svc-bar-fill-part{background:#ffc84a}
+.svc-bar-fill-miss{background:#ff5252}
+.svc-bar-lbl{font-size:0.78rem;font-weight:700;min-width:28px;text-align:center}
+.month-grid-cell{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:38px;height:38px;border-radius:6px;border:1px solid #2a4060;font-size:0.62rem;color:#7aacce;background:#1a2a3c;transition:.15s;cursor:default}
+.mgc-ok{background:#1a3a2a;border-color:#2e6645;color:#66e09a}
+.mgc-part{background:#3a2e12;border-color:#6a5020;color:#ffc84a}
+.mgc-miss{background:#3a1e1e;border-color:#6a3030;color:#ff8a80}
+.mgc-none{background:#18283a;border-color:#1e3040;color:#3a5570}
+.svc-round table tr:hover{background:#1f3854 !important}
+/* ── Grid ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding:14px 16px}
+/* ── Card ── */
+.card{background:#253d58;border:1px solid #2e5070;border-radius:12px;padding:12px;cursor:pointer;transition:.2s;position:relative;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.card:hover{border-color:#4a9fd4;transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.card.critical{border-right:4px solid #ff5252}.card.warn{border-right:4px solid #ffb74d}.card.ok{border-right:4px solid #4cde8a}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.card-name{font-weight:700;font-size:0.9rem;color:#e8f4ff;flex:1}
+.type-badge{font-size:0.62rem;background:#1e3350;color:#6aacce;padding:2px 6px;border-radius:8px;white-space:nowrap;margin-right:6px;border:1px solid #2e5070}
+.card-metrics{display:flex;gap:8px;margin-bottom:8px}
+.metric{flex:1;text-align:center;background:#1c3050;border-radius:8px;padding:6px 4px;border:1px solid #2a4565}
+.metric-label{font-size:0.62rem;color:#5a8aaa;margin-bottom:3px}
+.metric-value{font-size:0.92rem;font-weight:600;color:#c8e0f5}
+.do-ok{color:#4cde8a}.do-low{color:#ffb74d}.do-zero{color:#ff5252}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tag{font-size:0.68rem;padding:2px 7px;border-radius:10px;border:1px solid #2e5070}
+.tag-gear-ok{background:#0f3020;color:#4cde8a;border-color:#1a5530}
+.tag-gear-bad{background:#3a1010;color:#ff8a80;border-color:#6a2020}
+.tag-blade-ok{background:#1a1a3a;color:#9090ff;border-color:#2e2e60}
+.tag-blade-bad{background:#3a1c00;color:#ffaa55;border-color:#6a3a00}
+.tag-viol{background:#2e2000;color:#ffd060;border-color:#5a4000}
+.tag-sms{background:#3a0f0f;color:#ff8a80;border-color:#6a2020}
+.issues-preview{font-size:0.72rem;color:#6a9abb;background:#1c3050;border-radius:6px;padding:5px 8px;margin-bottom:8px;border:1px solid #2a4565}
+.issues-preview div{border-bottom:1px solid #253d58;padding:2px 0}.issues-preview div:last-child{border:none}
+.card-footer{display:flex;justify-content:space-between;align-items:center;font-size:0.68rem;color:#4a7a9b;border-top:1px solid #1e3350;padding-top:6px;margin-top:4px}
+/* ── Daily status badges ── */
+.dly-ok{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;color:#4cde8a;background:#0f3020;border:1px solid #1a5530;border-radius:10px;padding:1px 7px}
+.dly-no{display:inline-flex;align-items:center;gap:4px;font-size:0.68rem;color:#ffb74d;background:#3d2800;border:1px solid #6a4800;border-radius:10px;padding:1px 7px}
+/* ── Modal ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:#1e3248;border:1px solid #2e5070;border-radius:16px;width:100%;max-width:1040px;max-height:94vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.modal-header{padding:16px 22px 11px;border-bottom:1px solid #2a4565;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#1e3248;z-index:10;border-radius:16px 16px 0 0}
+.modal-title{font-size:1.25rem;font-weight:700;color:#e8f4ff}
+.modal-close{background:none;border:none;color:#5a8aaa;font-size:1.5rem;cursor:pointer;padding:4px 10px;border-radius:6px}
+.modal-close:hover{color:#ff5252;background:#3a1010}
+.modal-body{padding:16px 22px}
+/* modal sections */
+.modal-section{margin-bottom:16px}
+.section-title{font-size:0.87rem;color:#7dd4ff;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a4565;display:flex;align-items:center;gap:6px;font-weight:600}
+.metrics-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.metric-big{background:#162840;border-radius:10px;padding:10px 14px;min-width:110px;text-align:center;border:1px solid #2a4565}
+.metric-big .label{font-size:0.7rem;color:#5a8aaa;margin-bottom:4px}
+.metric-big .value{font-size:1.05rem;font-weight:600;color:#d0e4f5}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.chart-box{background:#162840;border-radius:10px;padding:10px;height:180px;border:1px solid #2a4565}
+.chart-title{font-size:0.75rem;color:#5a8aaa;margin-bottom:6px;text-align:center}
+.badge{padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:600}
+.badge-green{background:#0f3020;color:#4cde8a}.badge-red{background:#3a1010;color:#ff8a80}
+.badge-orange{background:#3d2800;color:#ffb74d}.badge-blue{background:#0f2040;color:#7dd4ff}
+.badge-grey{background:#1e3248;color:#6a9abb}
+.mini-table{width:100%;border-collapse:collapse;font-size:0.78rem}
+.mini-table th{background:#162840;color:#5a8aaa;padding:6px 8px;text-align:right;font-weight:600;border-bottom:2px solid #2a4565}
+.mini-table td{padding:5px 8px;border-bottom:1px solid #1e3248;color:#aacce0}
+.mini-table tr:hover td{background:#1c3050}
+.tag-routine{color:#4cde8a}.tag-urgent{color:#ff8a80}.tag-other{color:#aacce0}
+.gear-row{background:#162840;border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:0.8rem;border:1px solid #2a4565}
+.blade-row{background:#162840;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem;border:1px solid #2a4565}
+.open-issue{background:#162840;border-right:3px solid #4a9fd4;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem}
+.sms-alert{background:#2a1010;border-right:3px solid #ff5252;border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem;border:1px solid #5a1515}
+.sms-alert-content{color:#ffaaaa;font-weight:500}
+.sms-alert-time{font-size:0.68rem;color:#8a4040;margin-top:2px}
+.no-data{color:#4a7a9b;text-align:center;padding:24px;font-size:0.85rem}
+.modal-source{font-size:0.68rem;color:#3a6080;text-align:center;padding:6px;border-top:1px solid #2a4565;margin-top:4px}
+/* ── Alerts tab ── */
+.alert-tab-badge{display:inline-block;background:#8a1a1a;color:#ffaaaa;font-size:0.65rem;font-weight:700;border-radius:9px;padding:0px 6px;margin-right:4px;vertical-align:middle}
+.alerts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:16px}
+.alert-card{background:#253d58;border:1px solid #2e5070;border-radius:12px;padding:14px;border-right:4px solid #ff5252;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.alert-card:hover{border-color:#4a9fd4;transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.alert-card.days-2plus{border-right-color:#ff5252}
+.alert-card.days-1{border-right-color:#ffb74d}
+.alert-card.days-0{border-right-color:#4cde8a}
+.alert-facility{font-size:1rem;font-weight:700;color:#e8f4ff;margin-bottom:6px}
+.alert-content{font-size:0.85rem;color:#ffaaaa;margin-bottom:10px;line-height:1.5}
+.alert-meta{display:flex;justify-content:space-between;align-items:center;font-size:0.72rem;color:#5a8aaa;border-top:1px solid #2a4565;padding-top:8px;margin-top:4px}
+.alert-days-badge{padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:700}
+.badge-days-crit{background:#3a1010;color:#ff8a80;border:1px solid #6a2020}
+.badge-days-warn{background:#3d2800;color:#ffc84a;border:1px solid #6a4800}
+.badge-days-today{background:#0f3020;color:#66e09a;border:1px solid #1a5530}
+.alerts-summary{padding:10px 16px;font-size:0.82rem;color:#6a9abb;display:flex;gap:16px;align-items:center;background:#1c2d40;border-bottom:1px solid #263d56}
+.no-alerts{text-align:center;padding:48px 24px;color:#4a7a9b;font-size:1rem}
+/* ── Table view (gears/blades tabs) ── */
+#table-wrap{padding:14px 16px;overflow-x:auto}
+#data-table{width:100%;border-collapse:collapse;font-size:0.8rem}
+#data-table th{background:#1e3248;color:#5a8aaa;padding:8px 10px;text-align:right;font-weight:600;position:sticky;top:0;border-bottom:2px solid #2a4565}
+#data-table td{padding:7px 10px;border-bottom:1px solid #1e3248;color:#aacce0}
+#data-table tr:hover td{background:#1c3050}
+/* ── ז'אן קלוד tabs ── */
+.jc-view{padding:14px 16px}
+.jc-header{display:flex;gap:16px;align-items:center;padding:10px 16px;background:#1c2d40;border-bottom:1px solid #263d56;font-size:0.82rem;color:#6a9abb;flex-wrap:wrap}
+.jc-table{width:100%;border-collapse:collapse;font-size:0.8rem}
+.jc-table th{background:#1e3248;color:#5a8aaa;padding:8px 10px;text-align:right;font-weight:600;position:sticky;top:0;border-bottom:2px solid #2a4565}
+.jc-table td{padding:7px 10px;border-bottom:1px solid #1e3248;color:#aacce0;vertical-align:top}
+.jc-table tr:hover td{background:#1c3050}
+.status-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;white-space:nowrap}
+.sp-urgent{background:#2e0808;color:#ff8a80;border:1px solid #5a1515}
+.sp-refer{background:#2e1a00;color:#ffaa44;border:1px solid #5a3500}
+.sp-price{background:#0a1e38;color:#5bc4ff;border:1px solid #1a3d6a}
+.sp-other{background:#1e2f42;color:#7a9abb;border:1px solid #2a4565}
+.meter-ok{color:#4cde8a;font-weight:600}
+.meter-bar{display:inline-block;height:8px;background:linear-gradient(90deg,#2a6090,#4acde8);border-radius:4px;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">⚡ EPC-TEC Dashboard</div>
+  <div class="header-date">עודכן: 28/05/2026 10:22 | מאנדיי + SMS Live</div>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('facilities')">🏭 מתקנים</div>
+  <div class="tab" onclick="switchTab('svc')">📅 מעקב שירות</div>
+  <div class="tab" onclick="switchTab('alerts')">🚨 התראות פתוחות <span class="alert-tab-badge">7</span></div>
+  <div class="tab" onclick="switchTab('monissues')">📋 נושאים לטיפול <span class="alert-tab-badge">32</span></div>
+  <div class="tab" onclick="switchTab('meters')">💧 מדי ספיקה <span class="alert-tab-badge">33</span></div>
+  <div class="tab" onclick="switchTab('gears')">⚙️ מגרזות/משמנות</div>
+  <div class="tab" onclick="switchTab('blades')">🔧 להבי מדחס <span class="alert-tab-badge">0</span></div>
+  <div class="tab" onclick="switchTab('biobiot')">🚽 ביוביות</div>
+  <div class="tab" onclick="switchTab('viols')">🔬 חריגות דיגומים</div>
+</div>
+<div class="toolbar">
+  <input id="search" type="text" placeholder="חיפוש מתקן..." oninput="renderTab()">
+  <span id="stats"></span>
+</div>
+
+<!-- Facilities grid -->
+<div id="fac-view">
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Service tracking view -->
+<div id="svc-view" style="display:none">
+  <div id="svc-month-bar" class="month-bar"></div>
+  <div id="svc-rounds" style="padding:12px 16px 24px"></div>
+</div>
+
+<!-- Alerts view -->
+<div id="alerts-view" style="display:none">
+  <div class="alerts-summary" id="alerts-summary"></div>
+  <div class="alerts-grid" id="alerts-grid"></div>
+</div>
+
+<!-- ז'אן קלוד: Monday Issues view -->
+<div id="monissues-view" style="display:none">
+  <div class="jc-header" id="jc-issues-header"></div>
+  <div class="jc-view"><table class="jc-table"><thead id="jc-issues-head"></thead><tbody id="jc-issues-body"></tbody></table></div>
+</div>
+
+<!-- ז'אן קלוד: Meters view -->
+<div id="meters-view" style="display:none">
+  <div class="jc-header" id="jc-meters-header"></div>
+  <div class="jc-view"><table class="jc-table"><thead id="jc-meters-head"></thead><tbody id="jc-meters-body"></tbody></table></div>
+</div>
+
+<!-- ביוביות view -->
+<div id="biobiot-view" style="display:none">
+  <div style="padding:8px 12px;color:#aac8e0;font-size:0.82rem" id="biobiot-stats"></div>
+  <div style="overflow-x:auto"><table class="jc-table"><thead id="biobiot-head"></thead><tbody id="biobiot-body"></tbody></table></div>
+</div>
+
+<!-- Table view for other tabs -->
+<div id="table-wrap" style="display:none">
+  <table id="data-table"><thead id="table-head"></thead><tbody id="table-body"></tbody></table>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="e=>{if(e.target===this)closeModal()}">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title"></div>
+        <div style="font-size:0.73rem;color:#4a7a9b;margin-top:2px" id="modal-subtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:8px;min-height:20px" id="modal-daily"></div>
+      <div class="metrics-row" id="modal-metrics"></div>
+      <div class="charts-row">
+        <div class="chart-box"><div class="chart-title">DO — חמצן מומס (PPM)</div><canvas id="doChart"></canvas></div>
+        <div class="chart-box"><div class="chart-title">ספיקה ממוצעת (מ"ק/יום)</div><canvas id="flChart"></canvas></div>
+      </div>
+      <!-- Tracking sections -->
+      <div class="modal-section" id="gears-section" style="display:none">
+        <div class="section-title">⚙️ מגרזות/משמנות</div>
+        <div id="modal-gears"></div>
+      </div>
+      <div class="modal-section" id="blades-section" style="display:none">
+        <div class="section-title">🔧 להבי מדחס</div>
+        <div id="modal-blades"></div>
+      </div>
+      <!-- Violations -->
+      <div class="modal-section" id="violations-section" style="display:none">
+        <div class="section-title">🔬 חריגות דיגומים</div>
+        <div id="modal-violations"></div>
+      </div>
+      <!-- Open issues -->
+      <div class="modal-section" id="issues-section" style="display:none">
+        <div class="section-title">🔧 נושאים לטיפול פתוחים <span id="issues-count" style="font-size:0.75rem;color:#4a7a9b;margin-right:6px"></span></div>
+        <div id="modal-issues"></div>
+      </div>
+      <!-- SMS Alerts -->
+      <div class="modal-section" id="sms-section" style="display:none">
+        <div class="section-title">🚨 התראות SMS פתוחות <span id="sms-count" style="font-size:0.75rem;color:#4a7a9b;margin-right:6px"></span></div>
+        <div id="modal-sms"></div>
+      </div>
+      <!-- Visit history -->
+      <div class="modal-section">
+        <div class="section-title">📅 היסטוריית ביקורים</div>
+        <table class="mini-table"><thead><tr><th>תאריך</th><th>טכנאי</th><th>סוג</th></tr></thead><tbody id="modal-visits"></tbody></table>
+      </div>
+      <div class="modal-source">מקור: Monday.com + SMS4Free · 28/05/2026 10:22</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FAC = [{"n":"הר עמשא","t":"ביו-דיסק","lv":"23/03","lt":"Ben","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"מיכל ויסות","is":"לא נדרש","oi":[],"dh":[],"fh":[{"d":"2025-12-22","v":26.8},{"d":"2026-03-23","v":25.1}],"vh":[{"d":"2026-03-23","tech":"Ben","type":"חירום"},{"d":"2026-02-18","tech":"itzik","type":"חירום"},{"d":"2025-12-22","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-14","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2025-12-14"}],"st":"critical","service_round":"","visit_freq":"לא נדרש","sample_freq":"לא נדרש","results_status":"","results_status_month":"","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"רפת יד מורדכי","t":"ביו-רובי","lv":"04/11","lt":"Ben","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"טופל","oi":[],"dh":[],"fh":[],"vh":[{"d":"2025-11-04","tech":"Ben","type":""}],"sh":[],"st":"critical","service_round":"עוטף ישראל צפוני","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"מתקן לא פעיל","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[]},{"n":"אבנת","t":"ביו-דיסק","lv":"04/05","lt":"itzik","do":"6.7","ntu":17.13,"ntu_avg":26.0,"nth":[{"d":"2026-05-04","v":17.13},{"d":"2026-02-11","v":34.9}],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"מיכל איסוף בוצה","is":"נשלחה הצעת מחיר","oi":["הצעת מחיר להתקנת 2 מצופי התראה כולל קוי פיקוד וחיווט חדש.","תכנון הגדלת מתקן והתקנת מצופי התרעה על גלישות באיזון ובאיגום"],"dh":[{"d":"2026-05-04","v":7.52},{"d":"2026-04-19","v":6.0},{"d":"2026-03-10","v":5.36},{"d":"2026-02-11","v":7.23},{"d":"2026-01-06","v":6.57},{"d":"2025-12-09","v":7.57}],"fh":[{"d":"2026-02-11","v":25.2},{"d":"2026-03-10","v":17.6},{"d":"2026-04-19","v":17.0},{"d":"2026-05-04","v":66.4}],"vh":[{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-19","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-10","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-06","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-09","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-12","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-19"},{"d":"2026-03-10"},{"d":"2026-02-11"},{"d":"2026-01-06"},{"d":"2025-12-09"},{"d":"2025-11-12"}],"st":"warn","service_round":"ים המלח","visit_freq":"1 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"הוחלף","last":"2026-05-04","next":"2026-11-01","qty":"4","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-05-04","text":"הצעת מחיר להתקנת 2 מצופי התראה כולל קוי פיקוד וחיווט חדש.","status":"נשלחה הצעת מחיר","tech":"itzik","owner":"","treat_date":"2026-05-19","priority":"נמוכה"},{"d":"2026-02-11","text":"תכנון הגדלת מתקן והתקנת מצופי התרעה על גלישות באיזון ובאיגום","status":"הועבר לגורם מטפל","tech":"itzik","owner":"Gal Cohen, Bar Peretz","treat_date":"2026-03-26","priority":"בינונית"}],"dly":{"ok":true,"time":""},"sms":[{"content":"אבנת תקלה כללית","time":""},{"content":"אבנת תקלה במשאבת השקייה","time":""}]},{"n":"אפרסמור","t":"ביו-רובי","lv":"13/05","lt":"Ben","do":"3.6","ntu":56.7,"ntu_avg":56.7,"nth":[{"d":"2026-04-29","v":56.7}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-13","v":2.2},{"d":"2026-04-29","v":3.97},{"d":"2026-03-17","v":6.7},{"d":"2026-02-16","v":3.0},{"d":"2026-01-11","v":3.18},{"d":"2025-12-08","v":1.49},{"d":"2025-11-19","v":4.36}],"fh":[{"d":"2025-12-08","v":0.3},{"d":"2026-01-11","v":2.2},{"d":"2026-02-16","v":3.1},{"d":"2026-03-17","v":2.9},{"d":"2026-04-29","v":4.3},{"d":"2026-05-13","v":4.8}],"vh":[{"d":"2026-05-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-26","tech":"itzik","type":"חירום"},{"d":"2026-03-17","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-08","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-04","tech":"Ben","type":"חירום"},{"d":"2025-11-19","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-13"},{"d":"2026-04-29"},{"d":"2026-03-17"},{"d":"2026-02-16"},{"d":"2026-01-11"},{"d":"2025-12-08"},{"d":"2025-11-19"}],"st":"warn","service_round":"מרכז","visit_freq":"1 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[{"n":"אפרסמור","params":"BOD-52.8,COD-192","status":"","plist":[{"p":"BOD","v":"52.8"},{"p":"COD","v":"192"}],"tech":"Gal Cohen, Lior Ditur","notes":"מעקב אחרי איכות לאחר חיבור התאילנדים 3/26, לשלוח לאחר תוצאות אפרל","created":"2026-04-09","month":"אפריל","mn":4,"yr":2026}],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"אשלים B","t":"ביו-רובי","lv":"04/05","lt":"itzik","do":"2.6","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-01-05","v":3.65},{"d":"2025-12-08","v":2.0},{"d":"2025-11-03","v":2.0}],"fh":[{"d":"2025-12-08","v":1.4},{"d":"2026-01-05","v":1.0},{"d":"2026-02-02","v":1.0},{"d":"2026-03-11","v":0.8},{"d":"2026-04-13","v":0.8},{"d":"2026-05-04","v":1.0}],"vh":[{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-16","tech":"itzik","type":"חירום"},{"d":"2026-02-11","tech":"itzik","type":"חירום"},{"d":"2026-02-02","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-05","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-08","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-03","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-13"},{"d":"2026-02-02"},{"d":"2026-01-05"},{"d":"2025-12-08"},{"d":"2025-11-03"}],"st":"warn","service_round":"דרום 40","visit_freq":"1 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[{"n":"אשלים B","params":"COD-138,TSS-39.5","status":"","plist":[{"p":"COD","v":"138"},{"p":"TSS","v":"39.5"}],"tech":"Lior Ditur","notes":"לשלוח עם הסבר ביום חמישי 14.05.26","created":"2026-04-26","month":"אפריל","mn":4,"yr":2026}],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"בית אריה","t":"ביו-דיסק","lv":"18/05","lt":"itzik","do":"7.2","ntu":18.4,"ntu_avg":27.8,"nth":[{"d":"2026-04-19","v":18.4},{"d":"2026-03-18","v":30.3},{"d":"2026-01-11","v":34.6}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"דרוש טיפול","oi":["אספקה והתקנת אוגן אטם וסט ברגים בסניקת קולחים"],"dh":[{"d":"2026-05-06","v":8.4},{"d":"2026-04-19","v":7.46},{"d":"2026-03-18","v":7.2},{"d":"2026-02-03","v":6.75},{"d":"2026-01-11","v":7.06},{"d":"2025-12-10","v":6.49}],"fh":[{"d":"2025-12-10","v":1009.0},{"d":"2026-01-11","v":966.0},{"d":"2026-01-28","v":538.0},{"d":"2026-02-03","v":808.0},{"d":"2026-03-18","v":615.0},{"d":"2026-04-05","v":5665.0},{"d":"2026-04-19","v":671.0},{"d":"2026-05-06","v":569.0},{"d":"2026-05-18","v":626.0}],"vh":[{"d":"2026-05-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-06","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-19","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-05","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-19","tech":"itzik","type":""},{"d":"2026-03-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-19","tech":"itzik","type":"חירום"},{"d":"2026-02-03","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-28","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-11","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-10","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-10","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-06"},{"d":"2026-04-19"},{"d":"2026-03-18"},{"d":"2026-02-03"},{"d":"2026-01-11"},{"d":"2025-12-10"},{"d":"2025-11-10"}],"st":"warn","service_round":"יהודה ושומרון","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""},{"n":"משמנות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[{"n":"בית אריה","params":"COD-115,TSS-42","status":"","plist":[{"p":"COD","v":"115"},{"p":"TSS","v":"42"}],"tech":"Lior Ditur","notes":"","created":"2026-05-26","month":"מאי","mn":5,"yr":2026}],"all_issues":[{"d":"2026-05-18","text":"אספקה והתקנת אוגן אטם וסט ברגים בסניקת קולחים","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":"נמוכה"}]},{"n":"בית הערבה","t":"ביו-דיסק","lv":"20/05","lt":"itzik","do":"5.4","ntu":47.9,"ntu_avg":34.1,"nth":[{"d":"2026-05-04","v":47.9},{"d":"2026-02-11","v":20.4}],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"מיכל איסוף בוצה","is":"לא נדרש","oi":["החלפת מערך קולחים","להשלים קידוח כניסה חדשה לקולחים."],"dh":[{"d":"2026-05-04","v":4.05},{"d":"2026-04-19","v":3.4},{"d":"2026-03-10","v":5.6},{"d":"2026-02-11","v":5.82},{"d":"2026-01-06","v":4.9},{"d":"2025-12-09","v":8.35}],"fh":[],"vh":[{"d":"2026-05-20","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-19","tech":"","type":"שיגרתי"},{"d":"2026-04-06","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-10","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-19","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-06","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-24","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-09","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-26","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-12","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-19"},{"d":"2026-03-10"},{"d":"2026-02-11"},{"d":"2026-01-06"},{"d":"2025-12-09"},{"d":"2025-11-12"}],"st":"warn","service_round":"ים המלח","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"הוחלף","last":"2026-05-20","next":"2026-11-20","qty":"3","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-05-04","text":"החלפת מערך קולחים","status":"הועבר לגורם מטפל","tech":"itzik","owner":"","treat_date":"2026-05-18","priority":"דחופה"},{"d":"2026-03-25","text":"להשלים קידוח כניסה חדשה לקולחים.","status":"הועבר לגורם מטפל","tech":"itzik","owner":"itzik bar david, Ben Solomon","treat_date":"2026-03-26","priority":"נמוכה"}],"dly":{"ok":true,"time":""}},{"n":"דור אלון- אורים","t":"ביו-רובי","lv":"27/05","lt":"Ben","do":"3.2","ntu":132.0,"ntu_avg":132.0,"nth":[{"d":"2026-04-23","v":132.0}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-27","v":0.3},{"d":"2026-04-23","v":6.33},{"d":"2026-03-18","v":3.4},{"d":"2026-02-24","v":6.98},{"d":"2026-01-14","v":0.77},{"d":"2025-12-22","v":0.2},{"d":"2025-11-18","v":4.48}],"fh":[{"d":"2025-12-16","v":4.4},{"d":"2025-12-18","v":10.0},{"d":"2025-12-22","v":3.2},{"d":"2026-01-14","v":3.8},{"d":"2026-02-24","v":5.0},{"d":"2026-03-18","v":1.3},{"d":"2026-04-23","v":4.3},{"d":"2026-05-27","v":3.6}],"vh":[{"d":"2026-05-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-18","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-24","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-14","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-22","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-18","tech":"itzik","type":"חירום"},{"d":"2025-12-16","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-18","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-05","tech":"itzik","type":"חירום"},{"d":"2025-11-04","tech":"Ben","type":"חירום"}],"sh":[{"d":"2026-05-27"},{"d":"2026-04-23"},{"d":"2026-03-18"},{"d":"2026-02-24"},{"d":"2026-01-14"},{"d":"2025-12-22"},{"d":"2025-11-18"}],"st":"warn","service_round":"עוטף ישראל דרומי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.16","size_max":"35","size_min":"21","account":""}],"violations":[{"n":"דור אלון אורים","params":"COD-240,TSS-52","status":"","plist":[{"p":"COD","v":"240"},{"p":"TSS","v":"52"}],"tech":"Gal Cohen, Lior Ditur","notes":"","created":"2026-05-07","month":"מאי","mn":5,"yr":2026},{"n":"דור אלון אורים","params":"BOD-33,COD-342,TSS-118","status":"","plist":[{"p":"BOD","v":"33"},{"p":"COD","v":"342"},{"p":"TSS","v":"118"}],"tech":"Gal Cohen, Lior Ditur","notes":"הותקן טיפול בשומנים 4/26, לשלוח עם הסבר","created":"2026-03-31","month":"מרץ","mn":3,"yr":2026}],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"דור אלון- גן יבנה","t":"ביו-דיסק","lv":"27/05","lt":"Ben","do":"7.2","ntu":5.48,"ntu_avg":5.5,"nth":[{"d":"2026-03-12","v":5.48}],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"-","is":"דרוש טיפול","oi":["ביובית לשאיבה מפריד שומנים","הצעה וקידום החלפת לוחות סינון במסנן המסתובב","לספק מיכל כלור פעם הבא"],"dh":[{"d":"2026-05-27","v":8.0},{"d":"2026-04-23","v":9.0},{"d":"2026-03-12","v":9.96},{"d":"2026-02-04","v":5.77},{"d":"2026-01-01","v":11.01},{"d":"2025-12-03","v":2.4},{"d":"2025-11-18","v":4.12}],"fh":[{"d":"2025-12-16","v":14.3},{"d":"2026-01-01","v":5.4},{"d":"2026-01-14","v":19.1},{"d":"2026-02-04","v":11.5},{"d":"2026-02-25","v":0.7},{"d":"2026-03-12","v":0.7},{"d":"2026-03-23","v":1.0}],"vh":[{"d":"2026-05-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-05-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-12","tech":"itzik","type":""},{"d":"2026-02-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-04","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-14","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-22","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-16","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-03","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-18","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-27"},{"d":"2026-04-23"},{"d":"2026-03-12"},{"d":"2026-02-04"},{"d":"2026-01-01"},{"d":"2025-12-03"}],"st":"warn","service_round":"עוטף ישראל צפוני","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-05-27","text":"ביובית לשאיבה מפריד שומנים","status":"דרוש טיפול","tech":"Ben","owner":"","treat_date":"","priority":""},{"d":"2026-05-27","text":"לספק מיכל כלור פעם הבא","status":"דרוש טיפול","tech":"Ben","owner":"","treat_date":"","priority":""},{"d":"2026-05-14","text":"הצעה וקידום החלפת לוחות סינון במסנן המסתובב","status":"נשלחה הצעת מחיר","tech":"itzik","owner":"","treat_date":"","priority":""}],"dly":{"ok":true,"time":""}},{"n":"דור אלון- חוקוק","t":"ביו-רובי","lv":"25/05","lt":"itzik","do":"3.7","ntu":null,"ntu_avg":null,"nth":[],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"מיכל שיקוע ראשוני","is":"לא נדרש","oi":[],"dh":[{"d":"2026-04-29","v":5.0},{"d":"2026-01-20","v":2.37}],"fh":[],"vh":[{"d":"2026-05-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-26","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-20","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-17","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-01-20"}],"st":"warn","service_round":"צפון מזרחי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"מתקן לא פעיל","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- יובלים","t":"ביו-רובי","lv":"12/05","lt":"itzik","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"מיכל שיקוע ראשוני, מיכל ויסות, מיכל שיקוע שניוני, מיכל איגום","is":"לא נדרש","oi":[],"dh":[],"fh":[{"d":"2026-02-02","v":8.8},{"d":"2026-03-11","v":6.6},{"d":"2026-04-13","v":6.5},{"d":"2026-05-12","v":8.1}],"vh":[{"d":"2026-05-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-10","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-13","tech":"Ben","type":""}],"sh":[],"st":"warn","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"מתקן לא פעיל","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- מורן","t":"ביו-רובי","lv":"29/04","lt":"Ben","do":"3.9","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-04-29","v":2.4},{"d":"2026-01-20","v":5.36}],"fh":[{"d":"2026-03-30","v":9.1}],"vh":[{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-26","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-20","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-11","tech":"itzik","type":"חירום"},{"d":"2025-11-20","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-01-20"}],"st":"warn","service_round":"צפון מזרחי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.4","size_max":"16","size_min":"11","account":""}],"violations":[{"n":"דור אלון מורן","params":"TSS-69","status":"","plist":[{"p":"TSS","v":"69"}],"tech":"Lior Ditur","notes":"","created":"2026-05-25","month":"מאי","mn":5,"yr":2026}],"all_issues":[]},{"n":"כיכר סדום","t":"ביו-דיסק","lv":"18/05","lt":"itzik","do":"6.6","ntu":9.12,"ntu_avg":11.9,"nth":[{"d":"2026-05-06","v":9.12},{"d":"2026-04-15","v":12.02},{"d":"2026-03-10","v":16.09},{"d":"2026-02-10","v":10.27}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-06","v":8.22},{"d":"2026-04-15","v":7.05},{"d":"2026-03-10","v":6.53},{"d":"2026-02-10","v":7.86},{"d":"2026-01-04","v":5.0},{"d":"2025-12-24","v":5.0}],"fh":[{"d":"2026-03-10","v":341.1},{"d":"2026-05-06","v":150.6},{"d":"2026-05-18","v":155.0}],"vh":[{"d":"2026-05-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-06","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-15","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-25","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-10","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-10","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-22","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-04","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-24","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-04","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-06"},{"d":"2026-04-15"},{"d":"2026-03-25"},{"d":"2026-03-10"},{"d":"2026-02-10"},{"d":"2026-01-04"},{"d":"2025-12-24"}],"st":"warn","service_round":"סבב 90","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[{"n":"כיכר סדום","params":"כלורידים - 418.10, בורון 0.411 , נתרן - 186.133","status":"","plist":[{"p":"כלורידים","v":"418.10"},{"p":"בורון 0.411","v":""},{"p":"נתרן","v":"186.133"}],"tech":"Lior Ditur","notes":"","created":"2026-05-26","month":"מאי","mn":5,"yr":2026}],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"מנחת בר יהודה","t":"ביו-רובי","lv":"18/05","lt":"itzik","do":"3.9","ntu":11.31,"ntu_avg":11.3,"nth":[{"d":"2026-05-06","v":11.31}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-06","v":2.81},{"d":"2026-03-10","v":2.59},{"d":"2026-01-04","v":5.0},{"d":"2025-12-24","v":5.0}],"fh":[{"d":"2026-04-29","v":0.2},{"d":"2026-05-06","v":1.6},{"d":"2026-05-18","v":0.6}],"vh":[{"d":"2026-05-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-06","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-15","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-25","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-10","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-10","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-22","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-04","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-24","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-04","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-03","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-06"},{"d":"2026-04-29"},{"d":"2026-03-10"},{"d":"2026-02-10"},{"d":"2026-01-04"},{"d":"2025-12-24"}],"st":"warn","service_round":"סבב 90","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[{"n":"מנחת בר יהודה","params":"COD- 127","status":"","plist":[{"p":"COD","v":"127"}],"tech":"Lior Ditur","notes":"","created":"2026-05-17","month":"מאי","mn":5,"yr":2026}],"all_issues":[]},{"n":"סונול- עמודים","t":"ביו-רובי","lv":"25/05","lt":"itzik","do":"2.5","ntu":94.3,"ntu_avg":53.7,"nth":[{"d":"2026-05-12","v":94.3},{"d":"2026-03-30","v":13.03}],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"מפריד שומנים 1","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-12","v":0.54},{"d":"2026-04-13","v":0.3},{"d":"2026-03-30","v":3.36},{"d":"2026-03-11","v":0.3},{"d":"2026-02-02","v":0.43},{"d":"2026-01-20","v":5.96},{"d":"2026-01-05","v":1.45},{"d":"2025-12-10","v":4.6},{"d":"2025-11-11","v":5.87}],"fh":[{"d":"2026-03-11","v":2.0},{"d":"2026-03-30","v":2.7},{"d":"2026-04-29","v":3.5},{"d":"2026-05-12","v":4.2},{"d":"2026-05-25","v":4.2}],"vh":[{"d":"2026-05-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-26","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-20","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-17","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-11","tech":"itzik","type":"חירום"},{"d":"2025-12-10","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-20","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-11","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-12"},{"d":"2026-03-30"},{"d":"2026-03-11"},{"d":"2026-02-02"},{"d":"2026-01-20"},{"d":"2026-01-05"},{"d":"2025-12-10"},{"d":"2025-11-11"}],"st":"warn","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.16","size_max":"35","size_min":"21","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"עבדת","t":"ביו-רובי","lv":"27/05","lt":"","do":"2.8","ntu":null,"ntu_avg":null,"nth":[],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"מפריד שומנים 2, מפריד שומנים 1","is":"דרוש טיפול","oi":["מעקב תא סניקה"],"dh":[{"d":"2026-03-11","v":3.64},{"d":"2026-01-05","v":3.33},{"d":"2025-12-08","v":2.0},{"d":"2025-11-03","v":2.15}],"fh":[{"d":"2026-01-05","v":0.7},{"d":"2026-04-13","v":0.1}],"vh":[{"d":"2026-05-27","tech":"","type":"שיגרתי"},{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-28","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-30","tech":"Bar","type":"שיגרתי"},{"d":"2026-03-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-22","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-02","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-19","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-05","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-29","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-08","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-18","tech":"itzik","type":""},{"d":"2025-11-03","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-28"},{"d":"2026-03-30"},{"d":"2026-03-11"},{"d":"2026-02-02"},{"d":"2026-02-02"},{"d":"2026-01-05"},{"d":"2025-12-08"},{"d":"2025-11-03"}],"st":"warn","service_round":"דרום 40","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.16","size_max":"35","size_min":"21","account":""}],"violations":[{"n":"עבדת","params":"BOD-28,COD-276","status":"","plist":[{"p":"BOD","v":"28"},{"p":"COD","v":"276"}],"tech":"Lior Ditur","notes":"","created":"2026-05-17","month":"מאי","mn":5,"yr":2026},{"n":"עבדת","params":"BOD-48.9,COD-134,TSS-69","status":"","plist":[{"p":"BOD","v":"48.9"},{"p":"COD","v":"134"},{"p":"TSS","v":"69"}],"tech":"Gal Cohen, Lior Ditur","notes":"דיגום חוזר, לשלוח עם הסבר רק לאחר תוצאות אפריל","created":"2026-04-19","month":"אפריל","mn":4,"yr":2026}],"all_issues":[{"d":"2026-05-27","text":"מעקב תא סניקה","status":"דרוש טיפול","tech":"","owner":"","treat_date":"","priority":""}],"dly":{"ok":true,"time":""},"sms":[{"content":"עבדת תקלה פתוחה","time":""},{"content":"עבדת תקלה במשאבת איזון","time":""}]},{"n":"ערוגות בושם","t":"ביו-דיסק","lv":"12/05","lt":"Ben","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"נדרשת שאיבה","biobiot_status":"נדרשת שאיבה","biobiot_date":"","biobiot_order":"מיכל שיקוע ראשוני","is":"טופל","oi":[],"dh":[],"fh":[],"vh":[{"d":"2026-05-14","tech":"Ben","type":"חירום"},{"d":"2026-05-12","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-10","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-11","tech":"itzik","type":"שיגרתי"}],"sh":[],"st":"warn","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[]},{"n":"פז- השקמה","t":"ביו-רובי","lv":"25/05","lt":"itzik","do":"4.0","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-01-26","v":8.0},{"d":"2025-12-22","v":1.0},{"d":"2025-11-24","v":3.0}],"fh":[{"d":"2025-12-22","v":3.7},{"d":"2025-12-29","v":4.0},{"d":"2026-01-19","v":3.8},{"d":"2026-01-26","v":4.3},{"d":"2026-02-16","v":3.7},{"d":"2026-02-22","v":3.5},{"d":"2026-03-09","v":2.1},{"d":"2026-03-30","v":6.8},{"d":"2026-04-27","v":3.0},{"d":"2026-05-11","v":1.4},{"d":"2026-05-25","v":3.2}],"vh":[{"d":"2026-05-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-27","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-30","tech":"Bar","type":"שיגרתי"},{"d":"2026-03-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-22","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-16","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-26","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-19","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-29","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-22","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-24","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-11"},{"d":"2026-04-27"},{"d":"2026-03-30"},{"d":"2026-03-09"},{"d":"2026-02-22"},{"d":"2026-01-26"},{"d":"2025-12-22"},{"d":"2025-11-24"}],"st":"warn","service_round":"צפון הנגב","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.16","size_max":"35","size_min":"21","account":""}],"violations":[{"n":"פז השקמה","params":"COD-202,TSS-44","status":"","plist":[{"p":"COD","v":"202"},{"p":"TSS","v":"44"}],"tech":"Lior Ditur","notes":"","created":"2026-05-13","month":"מאי","mn":5,"yr":2026},{"n":"פז השקמה","params":"BOD-36,COD-148","status":"","plist":[{"p":"BOD","v":"36"},{"p":"COD","v":"148"}],"tech":"Gal Cohen, Lior Ditur","notes":"דיגום חוזר, לשלוח","created":"2026-04-19","month":"אפריל","mn":4,"yr":2026}],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"צומת הלידו","t":"ביו-רובי","lv":"20/05","lt":"itzik","do":"5.0","ntu":58.9,"ntu_avg":58.9,"nth":[{"d":"2026-05-04","v":58.9}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-04","v":5.77},{"d":"2026-04-19","v":4.27},{"d":"2026-03-10","v":4.6},{"d":"2026-02-11","v":5.11},{"d":"2026-01-06","v":4.41},{"d":"2025-12-09","v":4.94},{"d":"2025-11-12","v":5.7}],"fh":[{"d":"2025-12-09","v":1.9},{"d":"2025-12-24","v":13.4},{"d":"2026-01-06","v":14.2},{"d":"2026-02-11","v":13.7},{"d":"2026-02-23","v":14.0},{"d":"2026-03-10","v":9.3},{"d":"2026-03-25","v":4.7},{"d":"2026-04-06","v":7.3},{"d":"2026-04-19","v":4.7},{"d":"2026-05-04","v":10.6},{"d":"2026-05-20","v":7.7}],"vh":[{"d":"2026-05-20","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-19","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-06","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-10","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-19","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-06","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-24","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-09","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-26","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-12","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-19"},{"d":"2026-03-10"},{"d":"2026-02-11"},{"d":"2026-01-06"},{"d":"2025-12-09"},{"d":"2025-11-12"}],"st":"warn","service_round":"ים המלח","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.16","size_max":"35","size_min":"21","account":""}],"violations":[{"n":"צומת הלידו","params":"COD-206,TSS-127","status":"","plist":[{"p":"COD","v":"206"},{"p":"TSS","v":"127"}],"tech":"Lior Ditur","notes":"לשלוח עם הסבר","created":"2026-05-11","month":"מאי","mn":5,"yr":2026},{"n":"צומת הלידו","params":"COD- 147,TSS-78","status":"","plist":[{"p":"COD","v":"147"},{"p":"TSS","v":"78"}],"tech":"Lior Ditur","notes":"","created":"2026-05-18","month":"מאי","mn":5,"yr":2026}],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"קיבוץ אלמוג","t":"קיבוץ אלמוג","lv":"04/05","lt":"itzik","do":"6.5","ntu":38.9,"ntu_avg":221.9,"nth":[{"d":"2026-05-04","v":38.9},{"d":"2026-02-11","v":405.0}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"מפריד שפכי רפת","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-04","v":8.58},{"d":"2026-04-19","v":4.45},{"d":"2026-03-10","v":8.0},{"d":"2026-02-11","v":9.18},{"d":"2026-01-06","v":5.58},{"d":"2025-12-09","v":2.94},{"d":"2025-11-12","v":6.6}],"fh":[{"d":"2026-01-06","v":15.6},{"d":"2026-03-25","v":30.6},{"d":"2026-05-04","v":42.5}],"vh":[{"d":"2026-05-04","tech":"itzik","type":"שגרתי"},{"d":"2026-04-19","tech":"Ben","type":"שגרתי"},{"d":"2026-04-06","tech":"Ben","type":"שגרתי"},{"d":"2026-03-25","tech":"itzik","type":"שגרתי"},{"d":"2026-03-10","tech":"Ben","type":"שגרתי"},{"d":"2026-02-23","tech":"Ben","type":"שגרתי"},{"d":"2026-02-11","tech":"itzik","type":"שגרתי"},{"d":"2026-01-19","tech":"Ben","type":"שגרתי"},{"d":"2026-01-06","tech":"Ben","type":"שגרתי"},{"d":"2025-12-24","tech":"Ben","type":"שגרתי"},{"d":"2025-12-09","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-26","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-12","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-19"},{"d":"2026-03-10"},{"d":"2026-02-11"},{"d":"2026-01-06"},{"d":"2025-12-09"},{"d":"2025-11-12"}],"st":"warn","service_round":"ים המלח","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[],"violations":[{"n":"אלמוג","params":"COD-625,TSS-588","status":"","plist":[{"p":"COD","v":"625"},{"p":"TSS","v":"588"}],"tech":"Lior Ditur","notes":"לחכות לקבלת תוצאות מאי","created":"2026-05-11","month":"מאי","mn":5,"yr":2026},{"n":"אלמוג","params":"COD-198,TSS-47","status":"","plist":[{"p":"COD","v":"198"},{"p":"TSS","v":"47"}],"tech":"Lior Ditur","notes":"","created":"2026-05-18","month":"מאי","mn":5,"yr":2026}],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"Incoming form answer","t":"קיבוץ אלמוג","lv":"20/05","lt":"itzik","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"דרוש טיפול","oi":["פינוי מפרידים רפת"],"dh":[],"fh":[],"vh":[{"d":"2026-05-20","tech":"itzik","type":"שגרתי"}],"sh":[],"st":"ok","service_round":"","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[],"violations":[],"all_issues":[{"d":"2026-05-20","text":"פינוי מפרידים רפת","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":""}]},{"n":"אקוסול","t":"ביו-רובי","lv":"04/05","lt":"itzik","do":"3.2","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-01-05","v":3.81},{"d":"2025-11-03","v":2.56}],"fh":[],"vh":[{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-11","tech":"itzik","type":"חירום"},{"d":"2026-02-02","tech":"itzik","type":""},{"d":"2026-01-05","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-08","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-03","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-01-05"},{"d":"2025-11-03"}],"st":"ok","service_round":"דרום 40","visit_freq":"1 בחודש","sample_freq":"רבעוני","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"אשלג סדום","t":"ביו-רובי","lv":"18/05","lt":"itzik","do":"5.4","ntu":1.04,"ntu_avg":10.1,"nth":[{"d":"2026-05-06","v":1.04},{"d":"2026-04-15","v":19.11}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-06","v":4.48},{"d":"2026-04-15","v":6.59},{"d":"2026-03-10","v":7.42},{"d":"2026-02-10","v":6.0},{"d":"2026-01-04","v":5.0},{"d":"2025-12-24","v":5.0},{"d":"2025-11-03","v":3.39}],"fh":[],"vh":[{"d":"2026-05-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-06","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-15","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-25","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-10","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-10","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-22","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-06","tech":"itzik","type":"חירום"},{"d":"2026-01-04","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-24","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-04","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-03","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-06"},{"d":"2026-04-15"},{"d":"2026-03-10"},{"d":"2026-02-10"},{"d":"2026-01-04"},{"d":"2025-12-24"},{"d":"2025-11-03"}],"st":"ok","service_round":"סבב 90","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.16","size_max":"35","size_min":"21","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"בית אריזה בית - שדות נגב","t":"ביו-רובי","lv":"27/05","lt":"Ben","do":"5.6","ntu":8.81,"ntu_avg":8.8,"nth":[{"d":"2026-04-23","v":8.81}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-27","v":4.4},{"d":"2026-04-23","v":7.31},{"d":"2026-03-18","v":4.3},{"d":"2026-02-24","v":6.67},{"d":"2026-01-14","v":6.26},{"d":"2025-12-16","v":4.6}],"fh":[],"vh":[{"d":"2026-05-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-18","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-24","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-14","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-16","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-19","tech":"itzik","type":""}],"sh":[{"d":"2026-05-27"},{"d":"2026-05-27"},{"d":"2026-04-23"},{"d":"2026-03-18"},{"d":"2026-02-24"},{"d":"2026-01-14"},{"d":"2025-12-16"}],"st":"ok","service_round":"עוטף ישראל דרומי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"בית אריזה- בית הערבה","t":"ביו-רובי","lv":"20/05","lt":"itzik","do":"7.8","ntu":8.87,"ntu_avg":8.9,"nth":[{"d":"2026-05-04","v":8.87}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-04","v":8.87},{"d":"2026-04-19","v":6.0},{"d":"2026-03-10","v":8.0},{"d":"2026-02-11","v":8.94},{"d":"2026-01-06","v":9.35},{"d":"2025-12-09","v":7.79},{"d":"2025-11-12","v":5.31}],"fh":[{"d":"2025-12-24","v":1.6},{"d":"2026-01-06","v":1.4},{"d":"2026-01-19","v":0.3},{"d":"2026-02-11","v":0.6},{"d":"2026-02-23","v":0.4},{"d":"2026-03-10","v":0.3},{"d":"2026-03-25","v":0.3},{"d":"2026-04-06","v":0.5},{"d":"2026-04-19","v":0.2},{"d":"2026-05-04","v":0.4},{"d":"2026-05-20","v":0.4}],"vh":[{"d":"2026-05-20","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-19","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-06","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-10","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-19","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-06","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-24","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-09","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-26","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-12","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-19"},{"d":"2026-03-10"},{"d":"2026-02-11"},{"d":"2026-01-06"},{"d":"2025-12-09"},{"d":"2025-11-12"}],"st":"ok","service_round":"ים המלח","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.1","size_max":"27","size_min":"18","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"בית חגי","t":"ביו-דיסק","lv":"26/05","lt":"itzik","do":"8.9","ntu":10.12,"ntu_avg":7.6,"nth":[{"d":"2026-04-14","v":10.12},{"d":"2026-01-12","v":4.99}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["תכנות בקר מגוב לטובת הפעלה מרחוק","יש לתאם עם עידן ממוזס תכנות בקר ולהשיג כבל מתאים","שאיבה של מיכל ויסת"],"dh":[{"d":"2026-04-14","v":9.77},{"d":"2026-01-12","v":11.38},{"d":"2025-12-15","v":5.54}],"fh":[{"d":"2026-03-31","v":72.9},{"d":"2026-05-11","v":72.8},{"d":"2026-05-26","v":50.7}],"vh":[{"d":"2026-05-26","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-27","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-31","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-12","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-29","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-15","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-11"},{"d":"2026-04-14"},{"d":"2026-03-09"},{"d":"2026-02-09"},{"d":"2026-01-12"},{"d":"2025-12-15"}],"st":"ok","service_round":"דרום הר חברון","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-14","text":"יש לתאם עם עידן ממוזס תכנות בקר ולהשיג כבל מתאים","status":"הועבר לגורם מטפל","tech":"itzik","owner":"","treat_date":"","priority":""},{"d":"2026-03-31","text":"שאיבה של מיכל ויסת","status":"דרוש טיפול","tech":"Ben","owner":"Ben Solomon","treat_date":"","priority":"בינונית"},{"d":"2026-01-29","text":"תכנות בקר מגוב לטובת הפעלה מרחוק","status":"הועבר לגורם מטפל","tech":"itzik","owner":"itzik bar david","treat_date":"2026-03-26","priority":"נמוכה"}]},{"n":"גיתה","t":"ביו-דיסק","lv":"25/05","lt":"itzik","do":"4.6","ntu":5.51,"ntu_avg":4.5,"nth":[{"d":"2026-05-25","v":5.51},{"d":"2026-01-20","v":3.5}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"דרוש טיפול","oi":["למנוע גיר","ומיכל איסוף בוצה","הצעות מחיר:"],"dh":[{"d":"2026-05-25","v":4.73},{"d":"2026-04-13","v":2.55},{"d":"2026-03-11","v":4.0},{"d":"2026-02-02","v":4.7},{"d":"2026-01-20","v":7.79},{"d":"2025-12-10","v":3.84}],"fh":[],"vh":[{"d":"2026-05-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-26","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-20","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-17","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-10","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-20","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-11","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-25"},{"d":"2026-04-13"},{"d":"2026-03-11"},{"d":"2026-02-02"},{"d":"2026-01-20"},{"d":"2025-12-10"},{"d":"2025-11-11"}],"st":"ok","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"משמנות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-05-25","text":"הצעות מחיר:","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":""},{"d":"2026-05-25","text":"למנוע גיר","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":""},{"d":"2026-05-25","text":"ומיכל איסוף בוצה","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":""}],"dly":{"ok":true,"time":""}},{"n":"גני רמת הנדיב","t":"ביו-דיסק","lv":"12/05","lt":"Ben","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[],"fh":[],"vh":[{"d":"2026-05-12","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-29","tech":"itzik","type":"חירום"},{"d":"2025-12-10","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-11","tech":"itzik","type":"שיגרתי"}],"sh":[],"st":"ok","service_round":"צפון מערבי","visit_freq":"1 בחודש","sample_freq":"ללא דיגום","results_status":"לא דוגמים","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""},{"n":"משמנות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[]},{"n":"דור אלון- בני ציון","t":"ביו-רובי","lv":"13/05","lt":"Ben","do":"3.6","ntu":17.28,"ntu_avg":17.3,"nth":[{"d":"2026-04-29","v":17.28}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-04-29","v":4.53},{"d":"2026-01-11","v":2.7}],"fh":[{"d":"2026-02-16","v":27.8}],"vh":[{"d":"2026-05-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-17","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-08","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-19","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-04-29"},{"d":"2026-01-11"}],"st":"ok","service_round":"מרכז","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.1","size_max":"27","size_min":"18","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- גני חוגה","t":"ביו-רובי","lv":"25/05","lt":"itzik","do":"4.8","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-04-29","v":4.0},{"d":"2026-01-20","v":5.51}],"fh":[],"vh":[{"d":"2026-05-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-26","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-20","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-17","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-01-20"}],"st":"ok","service_round":"צפון מזרחי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- דבירה","t":"ביו-רובי","lv":"11/05","lt":"itzik","do":"1.0","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-01-26","v":1.07},{"d":"2025-12-22","v":1.0}],"fh":[],"vh":[{"d":"2026-05-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-28","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-22","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-26","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-22","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-11"},{"d":"2026-04-28"},{"d":"2026-03-09"},{"d":"2026-02-22"},{"d":"2026-01-26"},{"d":"2025-12-22"}],"st":"ok","service_round":"צפון הנגב","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"מתקן לא פעיל","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- זכרון יעקוב","t":"ביו-רובי","lv":"12/05","lt":"Ben","do":"2.7","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-04-13","v":3.63},{"d":"2026-01-05","v":1.8}],"fh":[],"vh":[{"d":"2026-05-12","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-10","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-11","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-01-05"}],"st":"ok","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- טל שחר","t":"ביו-רובי","lv":"29/04","lt":"itzik","do":"5.7","ntu":3.93,"ntu_avg":3.9,"nth":[{"d":"2026-04-29","v":3.93}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-04-29","v":5.23},{"d":"2026-01-11","v":6.24}],"fh":[],"vh":[{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-11","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-04-29"},{"d":"2026-01-11"}],"st":"ok","service_round":"מרכז","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"מתקן לא פעיל","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- להב","t":"ביו-רובי","lv":"11/05","lt":"itzik","do":"3.1","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-01-26","v":5.3},{"d":"2025-12-22","v":1.0}],"fh":[],"vh":[{"d":"2026-05-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-28","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-22","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-26","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-22","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-11"},{"d":"2026-04-28"},{"d":"2026-03-09"},{"d":"2026-02-22"},{"d":"2026-01-26"},{"d":"2025-12-22"}],"st":"ok","service_round":"צפון הנגב","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"מתקן לא פעיל","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- נגבה","t":"ביו-רובי","lv":"14/05","lt":"itzik","do":"3.8","ntu":2.19,"ntu_avg":2.2,"nth":[{"d":"2026-05-14","v":2.19}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-14","v":5.51},{"d":"2026-04-16","v":3.0},{"d":"2026-03-12","v":6.21},{"d":"2026-02-04","v":2.35},{"d":"2026-01-01","v":4.28},{"d":"2025-12-03","v":2.0},{"d":"2025-11-18","v":3.47}],"fh":[],"vh":[{"d":"2026-05-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-25","tech":"itzik","type":"חירום"},{"d":"2026-02-04","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-03","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-18","tech":"itzik","type":"חירום"},{"d":"2025-11-04","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-14"},{"d":"2026-04-16"},{"d":"2026-03-12"},{"d":"2026-02-04"},{"d":"2026-01-01"},{"d":"2025-12-03"},{"d":"2025-11-18"}],"st":"ok","service_round":"עוטף ישראל צפוני","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- צומת גנים","t":"ביו-רובי","lv":"13/05","lt":"Ben","do":"3.9","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-01-11","v":5.8},{"d":"2025-11-19","v":2.0}],"fh":[],"vh":[{"d":"2026-05-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-17","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-08","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-19","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-04-29"},{"d":"2026-01-11"}],"st":"ok","service_round":"מרכז","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"מתקן לא פעיל","last":"","next":"","height":"","model":"4.4","size_max":"16","size_min":"11","account":""}],"violations":[],"all_issues":[]},{"n":"דור אלון- שימרון","t":"ביו-רובי","lv":"12/05","lt":"itzik","do":"2.0","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-04-29","v":2.31},{"d":"2026-01-05","v":1.7}],"fh":[],"vh":[{"d":"2026-05-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-05","tech":"itzik","type":"חירום"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-11","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-01-05"}],"st":"ok","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.4","size_max":"16","size_min":"11","account":""}],"violations":[],"all_issues":[]},{"n":"דרום הר חברון- סוסיה","t":"ביו-דיסק","lv":"26/05","lt":"itzik","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["החלפת צינור הזנה בגלגלון"],"dh":[],"fh":[{"d":"2026-03-23","v":188.8},{"d":"2026-05-26","v":190.7}],"vh":[{"d":"2026-05-26","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-27","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-26","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-12","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-22","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-14","tech":"Ben","type":"שיגרתי"}],"sh":[],"st":"ok","service_round":"דרום הר חברון","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-14","text":"החלפת צינור הזנה בגלגלון","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":"נמוכה"}]},{"n":"דרום הר חברון- פני חבר","t":"ביו-דיסק","lv":"12/05","lt":"itzik","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["1.6-2.5 EATON","ולהחליף את הגנות המנוע של משאבות האיזון בהתאם","יש לשלוח הצעת מחיר למשאבת איזון חדשה"],"dh":[],"fh":[{"d":"2026-01-12","v":76.6},{"d":"2026-02-09","v":89.1},{"d":"2026-03-23","v":24.6},{"d":"2026-04-14","v":71.0},{"d":"2026-05-12","v":87.8}],"vh":[{"d":"2026-05-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-12","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-14","tech":"Ben","type":"שיגרתי"}],"sh":[],"st":"ok","service_round":"דרום הר חברון","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-14","text":"יש לשלוח הצעת מחיר למשאבת איזון חדשה","status":"נשלחה הצעת מחיר","tech":"itzik","owner":"","treat_date":"2026-05-11","priority":"בינונית"},{"d":"2026-04-14","text":"ולהחליף את הגנות המנוע של משאבות האיזון בהתאם","status":"נשלחה הצעת מחיר","tech":"itzik","owner":"","treat_date":"2026-05-11","priority":"בינונית"},{"d":"2026-04-14","text":"1.6-2.5 EATON","status":"נשלחה הצעת מחיר","tech":"itzik","owner":"","treat_date":"2026-05-11","priority":"בינונית"}]},{"n":"חאן שער הגיא","t":"ביו-דיסק","lv":"13/05","lt":"Ben","do":"4.4","ntu":1.34,"ntu_avg":1.3,"nth":[{"d":"2026-04-29","v":1.34}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-13","v":3.4},{"d":"2026-04-29","v":4.34},{"d":"2026-03-17","v":4.71},{"d":"2026-02-16","v":3.5},{"d":"2026-01-11","v":7.61},{"d":"2025-12-08","v":3.68},{"d":"2025-11-19","v":3.8}],"fh":[{"d":"2025-12-08","v":0.6},{"d":"2026-01-11","v":0.8},{"d":"2026-02-16","v":1.5},{"d":"2026-03-17","v":0.1},{"d":"2026-05-13","v":0.2}],"vh":[{"d":"2026-05-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-17","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-08","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-19","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-13"},{"d":"2026-04-29"},{"d":"2026-03-17"},{"d":"2026-02-16"},{"d":"2026-01-11"},{"d":"2025-12-08"},{"d":"2025-11-19"}],"st":"ok","service_round":"מרכז","visit_freq":"1 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"חוף קלי\"ה","t":"ביו-רובי","lv":"20/05","lt":"itzik","do":"5.2","ntu":17.82,"ntu_avg":17.8,"nth":[{"d":"2026-05-04","v":17.82}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-04","v":7.38},{"d":"2026-04-19","v":5.0},{"d":"2026-03-10","v":3.8},{"d":"2026-02-11","v":5.27},{"d":"2025-12-09","v":6.31},{"d":"2025-11-12","v":3.5}],"fh":[{"d":"2025-11-26","v":47.4},{"d":"2025-12-09","v":34.6},{"d":"2025-12-24","v":23.3},{"d":"2026-01-19","v":13.6},{"d":"2026-02-11","v":21.1},{"d":"2026-02-23","v":34.8},{"d":"2026-03-10","v":19.1},{"d":"2026-03-25","v":4.1},{"d":"2026-04-06","v":10.0},{"d":"2026-04-19","v":27.4},{"d":"2026-05-04","v":51.6},{"d":"2026-05-20","v":47.6}],"vh":[{"d":"2026-05-20","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-19","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-06","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-10","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-19","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-24","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-09","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-26","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-12","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-19"},{"d":"2026-03-10"},{"d":"2026-02-11"},{"d":"2025-12-09"},{"d":"2025-11-12"}],"st":"ok","service_round":"ים המלח","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[]},{"n":"חיפה כימקלים","t":"ביו-דיסק","lv":"20/05","lt":"Ben","do":"7.1","ntu":7.1,"ntu_avg":5.8,"nth":[{"d":"2026-05-05","v":7.1},{"d":"2026-04-13","v":5.2},{"d":"2026-03-16","v":5.04}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["קידום החלפת מד PH"],"dh":[{"d":"2026-05-05","v":6.5},{"d":"2026-04-13","v":8.5},{"d":"2026-03-16","v":7.81},{"d":"2026-02-11","v":5.0},{"d":"2026-01-07","v":7.0},{"d":"2025-12-01","v":7.96}],"fh":[{"d":"2025-11-27","v":40.8},{"d":"2025-12-01","v":44.3},{"d":"2026-01-07","v":43.2},{"d":"2026-01-21","v":36.9},{"d":"2026-02-11","v":39.1},{"d":"2026-03-31","v":43.3},{"d":"2026-04-13","v":33.8},{"d":"2026-04-27","v":40.1},{"d":"2026-05-05","v":50.6},{"d":"2026-05-20","v":38.9}],"vh":[{"d":"2026-05-20","tech":"Ben","type":"שיגרתי"},{"d":"2026-05-05","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-31","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-16","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-21","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-07","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-23","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-18","tech":"itzik","type":"חירום"},{"d":"2025-12-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-27","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-03","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-05"},{"d":"2026-04-13"},{"d":"2026-03-16"},{"d":"2026-02-11"},{"d":"2026-01-07"},{"d":"2025-12-01"},{"d":"2025-11-03"}],"st":"ok","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[{"n":"מגרזות","status":"הוחלף","last":"2026-05-20","next":"2026-11-20","qty":"5","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-13","text":"קידום החלפת מד PH","status":"אושר ע\"י גורם מטפל","tech":"itzik","owner":"","treat_date":"2026-05-18","priority":"נמוכה"}]},{"n":"חניון בארות","t":"ביו-רובי","lv":"25/05","lt":"itzik","do":"4.9","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-03-11","v":6.02},{"d":"2026-01-05","v":4.87},{"d":"2025-12-08","v":3.6},{"d":"2025-11-03","v":5.0}],"fh":[],"vh":[{"d":"2026-05-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-04","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-28","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-30","tech":"Bar","type":"שיגרתי"},{"d":"2026-03-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-16","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-02","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-19","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-05","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-29","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-08","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-18","tech":"itzik","type":""},{"d":"2025-11-03","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-04"},{"d":"2026-04-13"},{"d":"2026-03-11"},{"d":"2026-02-02"},{"d":"2026-01-05"},{"d":"2025-12-08"},{"d":"2025-11-03"}],"st":"ok","service_round":"דרום 40","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"ממשית","t":"ביו-רובי","lv":"20/05","lt":"Ben","do":"3.0","ntu":43.6,"ntu_avg":23.7,"nth":[{"d":"2026-05-05","v":43.6},{"d":"2026-04-13","v":3.84}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-05","v":2.96},{"d":"2026-04-13","v":3.64},{"d":"2026-02-11","v":0.3},{"d":"2026-01-07","v":4.0},{"d":"2025-12-01","v":2.75},{"d":"2025-11-03","v":4.39}],"fh":[],"vh":[{"d":"2026-05-20","tech":"Ben","type":"שיגרתי"},{"d":"2026-05-05","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-16","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-21","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-07","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-23","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-27","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-03","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-05"},{"d":"2026-04-13"},{"d":"2026-03-25"},{"d":"2026-02-11"},{"d":"2026-01-07"},{"d":"2025-12-01"},{"d":"2025-11-03"}],"st":"ok","service_round":"דרום 25","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[],"dly":{"ok":false,"time":null}},{"n":"מעלה עמוס","t":"ביו-דיסק","lv":"26/05","lt":"itzik","do":"4.9","ntu":34.9,"ntu_avg":34.9,"nth":[{"d":"2026-04-14","v":34.9}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["לשלוח הצעת מחיר עבור החלפה של משאבת איזון","איטום נזילה בלמלה"],"dh":[{"d":"2026-04-14","v":5.01},{"d":"2026-03-17","v":5.72},{"d":"2026-02-16","v":6.0},{"d":"2026-01-11","v":3.18},{"d":"2025-12-08","v":4.41},{"d":"2025-11-19","v":5.37}],"fh":[{"d":"2026-03-31","v":22.6},{"d":"2026-04-14","v":20.8},{"d":"2026-04-29","v":26.3},{"d":"2026-05-12","v":20.7}],"vh":[{"d":"2026-05-26","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-31","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-17","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-09","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-28","tech":"Bar","type":""},{"d":"2026-01-26","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-14","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-08","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-19","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-12"},{"d":"2026-04-14"},{"d":"2026-03-17"},{"d":"2026-02-16"},{"d":"2026-02-09"},{"d":"2026-01-11"},{"d":"2025-12-08"},{"d":"2025-11-19"}],"st":"ok","service_round":"מרכז","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[{"n":"משמנות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-29","text":"איטום נזילה בלמלה","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":"נמוכה"},{"d":"2026-03-17","text":"לשלוח הצעת מחיר עבור החלפה של משאבת איזון","status":"נשלחה הצעת מחיר","tech":"Ben","owner":"Ben Solomon, Gal Cohen","treat_date":"2026-05-19","priority":"בינונית"}],"dly":{"ok":true,"time":""},"sms":[{"content":"מעלה עמוס תקלה במשאבות איזון","time":""},{"content":"מעלה עמוס גובה יתר במיכל איזון","time":""}]},{"n":"מצדה","t":"מצדה","lv":"20/05","lt":"Ben","do":"6.6","ntu":11.76,"ntu_avg":21.0,"nth":[{"d":"2026-05-05","v":11.76},{"d":"2026-04-13","v":7.6},{"d":"2026-03-16","v":43.5}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["קידום תכנון ותמחור לוח חדש.","הצעת מחיר עבורו ועבור משאבת קולחים רזרבית"],"dh":[{"d":"2026-05-05","v":7.23},{"d":"2026-04-13","v":9.02},{"d":"2026-03-16","v":10.04},{"d":"2026-02-11","v":3.7},{"d":"2026-01-07","v":5.6},{"d":"2025-12-30","v":4.15}],"fh":[],"vh":[{"d":"2026-05-20","tech":"Ben","type":"שגרתי"},{"d":"2026-05-05","tech":"itzik","type":"שגרתי"},{"d":"2026-04-27","tech":"Ben","type":"שגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שגרתי"},{"d":"2026-03-31","tech":"itzik","type":"שגרתי"},{"d":"2026-03-16","tech":"itzik","type":"שגרתי"},{"d":"2026-02-22","tech":"itzik","type":"חירום"},{"d":"2026-02-11","tech":"Ben","type":"שגרתי"},{"d":"2026-01-21","tech":"itzik","type":"שגרתי"},{"d":"2026-01-07","tech":"Ben","type":"שגרתי"},{"d":"2025-12-30","tech":"itzik","type":"שגרתי"},{"d":"2025-12-28","tech":"","type":""},{"d":"2025-12-23","tech":"","type":""}],"sh":[{"d":"2026-05-05"},{"d":"2026-04-13"},{"d":"2026-03-16"},{"d":"2026-02-11"},{"d":"2026-01-07"},{"d":"2025-12-30"}],"st":"ok","service_round":"דרום 25","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"מדחס 2","status":"","last":"2025-12-30","next":"2026-06-30","height":"","model":"","size_max":"","size_min":"","account":""}],"violations":[],"all_issues":[{"d":"2026-05-05","text":"קידום תכנון ותמחור לוח חדש.","status":"נשלחה הצעת מחיר","tech":"itzik","owner":"","treat_date":"2026-05-19","priority":"בינונית"},{"d":"2026-05-05","text":"הצעת מחיר עבורו ועבור משאבת קולחים רזרבית","status":"נשלחה הצעת מחיר","tech":"itzik","owner":"","treat_date":"2026-05-19","priority":"בינונית"}]},{"n":"משואה","t":"ביו-דיסק","lv":"18/05","lt":"itzik","do":"8.4","ntu":1.11,"ntu_avg":5.5,"nth":[{"d":"2026-04-19","v":1.11},{"d":"2026-03-18","v":1.94},{"d":"2026-01-11","v":13.58}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"טופל","oi":["התקנת ברזים במערך הקולחים","יש לסיים חיבור קו גלישה לבין דיסק"],"dh":[{"d":"2026-05-06","v":6.0},{"d":"2026-04-19","v":7.04},{"d":"2026-03-18","v":10.24},{"d":"2026-02-03","v":8.4},{"d":"2026-01-11","v":9.38},{"d":"2025-12-10","v":9.54}],"fh":[{"d":"2025-12-29","v":197.9},{"d":"2026-01-28","v":212.7},{"d":"2026-03-30","v":181.8},{"d":"2026-04-05","v":147.2},{"d":"2026-05-06","v":150.6}],"vh":[{"d":"2026-05-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-06","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-19","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-05","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-19","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-03","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-28","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-11","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-29","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-10","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-24","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-10","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-06"},{"d":"2026-04-19"},{"d":"2026-03-18"},{"d":"2026-02-03"},{"d":"2026-01-11"},{"d":"2025-12-10"},{"d":"2025-11-10"}],"st":"ok","service_round":"יהודה ושומרון","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-19","text":"יש לסיים חיבור קו גלישה לבין דיסק","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":"בינונית"},{"d":"2026-04-19","text":"התקנת ברזים במערך הקולחים","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":"בינונית"}]},{"n":"נטועה","t":"ביו-דיסק","lv":"25/05","lt":"itzik","do":"7.7","ntu":5.45,"ntu_avg":5.5,"nth":[{"d":"2026-05-12","v":5.45}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-12","v":7.77},{"d":"2026-04-13","v":5.46},{"d":"2026-03-30","v":9.74}],"fh":[],"vh":[{"d":"2026-05-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-29","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-19","tech":"Bar","type":"שיגרתי"},{"d":"2026-02-26","tech":"Ben","type":"חירום"},{"d":"2026-02-17","tech":"itzik","type":"חירום"},{"d":"2026-02-02","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-20","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-05","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-17","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-20","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-12"},{"d":"2026-04-13"},{"d":"2026-02-02"}],"st":"ok","service_round":"צפון מערבי","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""},{"n":"משמנות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"ניר יצחק","t":"ביו-דיסק","lv":"27/05","lt":"Ben","do":"5.0","ntu":31.7,"ntu_avg":29.1,"nth":[{"d":"2026-04-23","v":31.7},{"d":"2026-02-24","v":26.6}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["מעקב אחרי חיבור מערכת התראות מחדש על ידי ארז."],"dh":[{"d":"2026-05-27","v":5.0},{"d":"2026-04-23","v":5.13},{"d":"2026-03-18","v":4.0},{"d":"2026-02-24","v":7.48},{"d":"2026-01-14","v":5.4},{"d":"2025-12-16","v":3.27}],"fh":[{"d":"2026-01-14","v":429.2},{"d":"2026-02-24","v":299.2},{"d":"2026-03-18","v":385.6},{"d":"2026-05-27","v":306.2}],"vh":[{"d":"2026-05-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-18","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-24","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-14","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-16","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-27"},{"d":"2026-04-23"},{"d":"2026-03-18"},{"d":"2026-02-24"},{"d":"2026-01-14"},{"d":"2025-12-16"}],"st":"ok","service_round":"עוטף ישראל דרומי","visit_freq":"1 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""},{"n":"משמנות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-23","text":"מעקב אחרי חיבור מערכת התראות מחדש על ידי ארז.","status":"דרוש טיפול","tech":"itzik","owner":"","treat_date":"","priority":"נמוכה"}],"dly":{"ok":true,"time":""}},{"n":"סונול- בית שקמה","t":"ביו-רובי","lv":"27/05","lt":"Ben","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[],"fh":[{"d":"2026-05-14","v":4.8},{"d":"2026-05-27","v":6.3}],"vh":[{"d":"2026-05-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-05-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-24","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-04","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-14","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-22","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-16","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-03","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-18","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-04","tech":"Ben","type":"שיגרתי"}],"sh":[],"st":"ok","service_round":"עוטף ישראל צפוני","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[]},{"n":"עופרים","t":"ביו-דיסק","lv":"18/05","lt":"itzik","do":"7.4","ntu":27.2,"ntu_avg":41.9,"nth":[{"d":"2026-04-19","v":27.2},{"d":"2026-03-18","v":20.3},{"d":"2026-01-11","v":78.1}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-06","v":7.8},{"d":"2026-04-19","v":5.59},{"d":"2026-03-18","v":6.11},{"d":"2026-02-03","v":7.9},{"d":"2026-01-11","v":7.9},{"d":"2025-12-10","v":9.36}],"fh":[{"d":"2025-11-24","v":204.6},{"d":"2026-01-11","v":213.7},{"d":"2026-01-28","v":233.7},{"d":"2026-02-03","v":304.8},{"d":"2026-03-18","v":224.0},{"d":"2026-03-30","v":287.1},{"d":"2026-04-05","v":261.5},{"d":"2026-04-19","v":251.5},{"d":"2026-05-06","v":212.5},{"d":"2026-05-18","v":231.9}],"vh":[{"d":"2026-05-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-05-06","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-19","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-05","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-30","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-18","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-03","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-28","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-21","tech":"Ben","type":"חירום"},{"d":"2026-01-11","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-06","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-29","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-10","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-24","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-18","tech":"Ben","type":"חירום"},{"d":"2025-11-10","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-06"},{"d":"2026-04-19"},{"d":"2026-03-18"},{"d":"2026-02-03"},{"d":"2026-01-11"},{"d":"2025-12-10"},{"d":"2025-11-10"}],"st":"ok","service_round":"יהודה ושומרון","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"פז- סילבר","t":"ביו-רובי","lv":"27/05","lt":"Ben","do":"4.4","ntu":4.98,"ntu_avg":5.0,"nth":[{"d":"2026-05-14","v":4.98}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"דרוש טיפול","oi":[],"dh":[{"d":"2026-05-14","v":7.07},{"d":"2026-04-16","v":3.5},{"d":"2026-03-12","v":5.1},{"d":"2026-02-04","v":3.4},{"d":"2026-01-01","v":4.36},{"d":"2025-12-03","v":3.4},{"d":"2025-11-18","v":5.55},{"d":"2025-11-04","v":2.94}],"fh":[{"d":"2025-12-16","v":6.2},{"d":"2025-12-22","v":11.4},{"d":"2026-01-01","v":4.9},{"d":"2026-01-14","v":4.2},{"d":"2026-02-04","v":3.5},{"d":"2026-02-25","v":3.2},{"d":"2026-03-12","v":2.7},{"d":"2026-03-23","v":3.8},{"d":"2026-04-16","v":2.9},{"d":"2026-04-23","v":2.6},{"d":"2026-05-14","v":4.0},{"d":"2026-05-27","v":3.5}],"vh":[{"d":"2026-05-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-05-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-23","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-25","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-04","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-14","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-22","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-16","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-03","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-18","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-04","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-14"},{"d":"2026-04-16"},{"d":"2026-03-12"},{"d":"2026-02-04"},{"d":"2026-01-01"},{"d":"2025-12-03"},{"d":"2025-11-04"}],"st":"ok","service_round":"עוטף ישראל צפוני","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"","results_status_month":"","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.16","size_max":"35","size_min":"21","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""}},{"n":"צובה","t":"ביו-דיסק","lv":"13/05","lt":"Ben","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["קידום החלפת מערכי סינון בשני תופים נוספים"],"dh":[],"fh":[],"vh":[{"d":"2026-05-13","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-29","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-17","tech":"Ben","type":"שיגרתי"},{"d":"2026-02-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-25","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-08","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-19","tech":"Ben","type":"שיגרתי"}],"sh":[],"st":"ok","service_round":"מרכז","visit_freq":"1 בחודש","sample_freq":"ללא דיגום","results_status":"לא דוגמים","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-29","text":"קידום החלפת מערכי סינון בשני תופים נוספים","status":"אושר ע\"י גורם מטפל","tech":"itzik","owner":"","treat_date":"2026-05-19","priority":"בינונית"}]},{"n":"צפע","t":"ביו-רובי","lv":"20/05","lt":"Ben","do":"6.6","ntu":7.46,"ntu_avg":7.8,"nth":[{"d":"2026-05-05","v":7.46},{"d":"2026-04-13","v":8.14}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-05","v":6.73},{"d":"2026-04-13","v":8.87},{"d":"2026-03-16","v":4.74},{"d":"2026-02-11","v":7.56},{"d":"2025-12-23","v":6.28},{"d":"2025-12-16","v":3.2},{"d":"2025-12-01","v":8.63}],"fh":[{"d":"2025-11-27","v":0.1}],"vh":[{"d":"2026-05-20","tech":"Ben","type":"שיגרתי"},{"d":"2026-05-05","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-31","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-16","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-08","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-11","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-23","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-16","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-27","tech":"Ben","type":"שיגרתי"},{"d":"2025-11-13","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-05-05"},{"d":"2026-04-13"},{"d":"2026-03-16"},{"d":"2026-02-11"},{"d":"2025-12-23"},{"d":"2025-12-16"},{"d":"2025-12-01"}],"st":"ok","service_round":"דרום 25","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תקין","last":"","next":"","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[],"dly":{"ok":true,"time":""},"sms":[{"content":"מט\"ש צפע תקלה במשאבת קולחים","time":""}]},{"n":"קיבוץ מגן","t":"קיבוץ מגן","lv":"23/04","lt":"","do":"5.3","ntu":null,"ntu_avg":null,"nth":[],"ps":"","biobiot_status":"","biobiot_date":"","biobiot_order":"","is":"","oi":[],"dh":[{"d":"2026-04-23","v":7.03},{"d":"2026-03-18","v":2.7},{"d":"2026-01-14","v":8.0},{"d":"2025-12-16","v":3.6}],"fh":[],"vh":[{"d":"2026-04-23","tech":"","type":"שגרתי"},{"d":"2026-03-18","tech":"","type":"שגרתי"},{"d":"2026-02-24","tech":"","type":"שגרתי"},{"d":"2026-01-14","tech":"","type":"שגרתי"},{"d":"2025-12-16","tech":"Ben","type":"שגרתי"},{"d":"2025-11-18","tech":"itzik","type":"שיגרתי"}],"sh":[{"d":"2026-04-23"},{"d":"2026-03-18"},{"d":"2026-01-14"},{"d":"2025-12-16"},{"d":"2025-11-18"}],"st":"ok","service_round":"עוטף ישראל דרומי","visit_freq":"1 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[],"violations":[],"all_issues":[]},{"n":"רותם אמפרט","t":"ביו-דיסק","lv":"07/05","lt":"itzik","do":"","ntu":null,"ntu_avg":null,"nth":[],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"הועבר לגורם מטפל","oi":["תכנון 2 ימי התקנה במט\"ש כולל הדרכת בטיחות ובירוקרטיה 3 שעות","לא כולל שיבור"],"dh":[],"fh":[],"vh":[{"d":"2026-05-07","tech":"itzik","type":"שיגרתי"}],"sh":[],"st":"ok","service_round":"","visit_freq":"לא נדרש","sample_freq":"לא נדרש","results_status":"","results_status_month":"","gears":[{"n":"משמנות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-05-07","text":"תכנון 2 ימי התקנה במט\"ש כולל הדרכת בטיחות ובירוקרטיה 3 שעות","status":"הועבר לגורם מטפל","tech":"itzik","owner":"","treat_date":"","priority":"בינונית"},{"d":"2026-05-07","text":"לא כולל שיבור","status":"הועבר לגורם מטפל","tech":"itzik","owner":"","treat_date":"","priority":"בינונית"}],"dly":{"ok":true,"time":""}},{"n":"רותם תעשיות","t":"ביו-דיסק","lv":"20/05","lt":"Ben","do":"7.0","ntu":17.46,"ntu_avg":15.7,"nth":[{"d":"2026-05-05","v":17.46},{"d":"2026-04-13","v":11.02},{"d":"2026-03-16","v":19.2},{"d":"2026-02-23","v":15.2}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":["נקיון עשבים וריסוס"],"dh":[{"d":"2026-05-05","v":8.38},{"d":"2026-04-13","v":3.38},{"d":"2026-03-16","v":8.97},{"d":"2026-02-23","v":9.32},{"d":"2026-02-11","v":4.0},{"d":"2026-01-07","v":8.0},{"d":"2025-12-01","v":7.08}],"fh":[{"d":"2025-12-01","v":12.3},{"d":"2025-12-23","v":9.7},{"d":"2026-01-07","v":12.1},{"d":"2026-01-21","v":9.8},{"d":"2026-02-11","v":10.0},{"d":"2026-02-23","v":1.2},{"d":"2026-03-16","v":8.5},{"d":"2026-04-13","v":10.2},{"d":"2026-04-27","v":7.1},{"d":"2026-05-05","v":11.5},{"d":"2026-05-20","v":8.7}],"vh":[{"d":"2026-05-20","tech":"Ben","type":"שיגרתי"},{"d":"2026-05-05","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-27","tech":"Ben","type":"שיגרתי"},{"d":"2026-04-13","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-31","tech":"itzik","type":"שיגרתי"},{"d":"2026-03-16","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-23","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-11","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-21","tech":"itzik","type":"שיגרתי"},{"d":"2026-01-07","tech":"Ben","type":"שיגרתי"},{"d":"2025-12-23","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-11-27","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-05"},{"d":"2026-04-13"},{"d":"2026-03-16"},{"d":"2026-02-23"},{"d":"2026-02-11"},{"d":"2026-01-07"},{"d":"2025-12-01"}],"st":"ok","service_round":"דרום 25","visit_freq":"2 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[{"n":"מגרזות","status":"תקין","last":"","next":"","qty":"","account":""}],"blades":[],"violations":[],"all_issues":[{"d":"2026-04-27","text":"נקיון עשבים וריסוס","status":"דרוש טיפול","tech":"Ben","owner":"","treat_date":"","priority":"נמוכה"}],"dly":{"ok":true,"time":""}},{"n":"שתיל נטו","t":"ביו-רובי","lv":"14/05","lt":"itzik","do":"5.1","ntu":9.41,"ntu_avg":9.4,"nth":[{"d":"2026-05-14","v":9.41}],"ps":"לא נדרש","biobiot_status":"לא נדרש","biobiot_date":"","biobiot_order":"","is":"לא נדרש","oi":[],"dh":[{"d":"2026-05-14","v":6.66},{"d":"2026-04-16","v":7.0},{"d":"2026-03-12","v":7.58},{"d":"2026-02-04","v":1.14},{"d":"2026-01-01","v":7.83},{"d":"2025-12-22","v":0.24}],"fh":[{"d":"2026-02-04","v":7.6},{"d":"2026-03-12","v":7.7},{"d":"2026-04-16","v":8.3}],"vh":[{"d":"2026-05-14","tech":"itzik","type":"שיגרתי"},{"d":"2026-04-16","tech":"Ben","type":"שיגרתי"},{"d":"2026-03-12","tech":"itzik","type":"שיגרתי"},{"d":"2026-02-04","tech":"Ben","type":"שיגרתי"},{"d":"2026-01-01","tech":"itzik","type":"שיגרתי"},{"d":"2025-12-22","tech":"Ben","type":"שיגרתי"}],"sh":[{"d":"2026-05-14"},{"d":"2026-04-16"},{"d":"2026-03-12"},{"d":"2026-02-04"},{"d":"2026-01-01"},{"d":"2025-12-22"}],"st":"ok","service_round":"עוטף ישראל צפוני","visit_freq":"1 בחודש","sample_freq":"1 בחודש","results_status":"טרם התקבלו","results_status_month":"2026-05","gears":[],"blades":[{"n":"להבי מדחס","status":"תחזוקה שוטפת- הוחלף להבים","last":"2026-05-14","next":"2027-05-02","height":"","model":"4.8","size_max":"18.5","size_min":"12.5","account":""}],"violations":[],"all_issues":[],"dly":{"ok":false,"time":null}}];
+const OPEN_ALERTS = [{"facility": "מעלה עמוס - מתקן זמני", "content": "מעלה עמוס תקלה במשאבות איזון", "firstDate": "24/05/2026", "lastTime": "", "daysOpen": 4, "service_round": "מרכז", "canonical": "מעלה עמוס"}, {"facility": "מעלה עמוס - מתקן זמני", "content": "מעלה עמוס גובה יתר במיכל איזון", "firstDate": "24/05/2026", "lastTime": "", "daysOpen": 4, "service_round": "מרכז", "canonical": "מעלה עמוס"}, {"facility": "מט\"ש צפע", "content": "מט\"ש צפע תקלה במשאבת קולחים", "firstDate": "24/05/2026", "lastTime": "", "daysOpen": 4, "service_round": "דרום 25", "canonical": "צפע"}, {"facility": "אבנת", "content": "אבנת תקלה כללית", "firstDate": "25/05/2026", "lastTime": "", "daysOpen": 3, "service_round": "ים המלח", "canonical": "אבנת"}, {"facility": "אבנת", "content": "אבנת תקלה במשאבת השקייה", "firstDate": "25/05/2026", "lastTime": "", "daysOpen": 3, "service_round": "ים המלח", "canonical": "אבנת"}, {"facility": "עבדת", "content": "עבדת תקלה פתוחה", "firstDate": "27/05/2026", "lastTime": "", "daysOpen": 1, "service_round": "דרום 40", "canonical": "עבדת"}, {"facility": "עבדת", "content": "עבדת תקלה במשאבת איזון", "firstDate": "28/05/2026", "lastTime": "", "daysOpen": 0, "service_round": "דרום 40", "canonical": "עבדת"}];
+const JC_ISSUES = [{"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-05-27", "text": "ביובית לשאיבה מפריד שומנים", "s": "דרוש טיפול", "tech": "Ben", "priority": "", "owner": "", "treat_date": ""}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-05-27", "text": "לספק מיכל כלור פעם הבא", "s": "דרוש טיפול", "tech": "Ben", "priority": "", "owner": "", "treat_date": ""}, {"f": "עבדת", "t": "ביו-רובי", "d": "2026-05-27", "text": "מעקב תא סניקה", "s": "דרוש טיפול", "tech": "", "priority": "", "owner": "", "treat_date": ""}, {"f": "גיתה", "t": "ביו-דיסק", "d": "2026-05-25", "text": "הצעות מחיר:", "s": "דרוש טיפול", "tech": "itzik", "priority": "", "owner": "", "treat_date": ""}, {"f": "גיתה", "t": "ביו-דיסק", "d": "2026-05-25", "text": "למנוע גיר", "s": "דרוש טיפול", "tech": "itzik", "priority": "", "owner": "", "treat_date": ""}, {"f": "גיתה", "t": "ביו-דיסק", "d": "2026-05-25", "text": "ומיכל איסוף בוצה", "s": "דרוש טיפול", "tech": "itzik", "priority": "", "owner": "", "treat_date": ""}, {"f": "Incoming form answer", "t": "קיבוץ אלמוג", "d": "2026-05-20", "text": "פינוי מפרידים רפת", "s": "דרוש טיפול", "tech": "itzik", "priority": "", "owner": "", "treat_date": ""}, {"f": "בית אריה", "t": "ביו-דיסק", "d": "2026-05-18", "text": "אספקה והתקנת אוגן אטם וסט ברגים בסניקת קולחים", "s": "דרוש טיפול", "tech": "itzik", "priority": "נמוכה", "owner": "", "treat_date": ""}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-05-14", "text": "הצעה וקידום החלפת לוחות סינון במסנן המסתובב", "s": "נשלחה הצעת מחיר", "tech": "itzik", "priority": "", "owner": "", "treat_date": ""}, {"f": "רותם אמפרט", "t": "ביו-דיסק", "d": "2026-05-07", "text": "תכנון 2 ימי התקנה במט\"ש כולל הדרכת בטיחות ובירוקרטיה 3 שעות", "s": "הועבר לגורם מטפל", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": ""}, {"f": "רותם אמפרט", "t": "ביו-דיסק", "d": "2026-05-07", "text": "לא כולל שיבור", "s": "הועבר לגורם מטפל", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": ""}, {"f": "מצדה", "t": "מצדה", "d": "2026-05-05", "text": "קידום תכנון ותמחור לוח חדש.", "s": "נשלחה הצעת מחיר", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": "2026-05-19"}, {"f": "מצדה", "t": "מצדה", "d": "2026-05-05", "text": "הצעת מחיר עבורו ועבור משאבת קולחים רזרבית", "s": "נשלחה הצעת מחיר", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": "2026-05-19"}, {"f": "אבנת", "t": "ביו-דיסק", "d": "2026-05-04", "text": "הצעת מחיר להתקנת 2 מצופי התראה כולל קוי פיקוד וחיווט חדש.", "s": "נשלחה הצעת מחיר", "tech": "itzik", "priority": "נמוכה", "owner": "", "treat_date": "2026-05-19"}, {"f": "בית הערבה", "t": "ביו-דיסק", "d": "2026-05-04", "text": "החלפת מערך קולחים", "s": "הועבר לגורם מטפל", "tech": "itzik", "priority": "דחופה", "owner": "", "treat_date": "2026-05-18"}, {"f": "מעלה עמוס", "t": "ביו-דיסק", "d": "2026-04-29", "text": "איטום נזילה בלמלה", "s": "דרוש טיפול", "tech": "itzik", "priority": "נמוכה", "owner": "", "treat_date": ""}, {"f": "צובה", "t": "ביו-דיסק", "d": "2026-04-29", "text": "קידום החלפת מערכי סינון בשני תופים נוספים", "s": "אושר ע\"י גורם מטפל", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": "2026-05-19"}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-04-27", "text": "נקיון עשבים וריסוס", "s": "דרוש טיפול", "tech": "Ben", "priority": "נמוכה", "owner": "", "treat_date": ""}, {"f": "ניר יצחק", "t": "ביו-דיסק", "d": "2026-04-23", "text": "מעקב אחרי חיבור מערכת התראות מחדש על ידי ארז.", "s": "דרוש טיפול", "tech": "itzik", "priority": "נמוכה", "owner": "", "treat_date": ""}, {"f": "משואה", "t": "ביו-דיסק", "d": "2026-04-19", "text": "יש לסיים חיבור קו גלישה לבין דיסק", "s": "דרוש טיפול", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": ""}, {"f": "משואה", "t": "ביו-דיסק", "d": "2026-04-19", "text": "התקנת ברזים במערך הקולחים", "s": "דרוש טיפול", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": ""}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-04-14", "text": "יש לתאם עם עידן ממוזס תכנות בקר ולהשיג כבל מתאים", "s": "הועבר לגורם מטפל", "tech": "itzik", "priority": "", "owner": "", "treat_date": ""}, {"f": "דרום הר חברון- סוסיה", "t": "ביו-דיסק", "d": "2026-04-14", "text": "החלפת צינור הזנה בגלגלון", "s": "דרוש טיפול", "tech": "itzik", "priority": "נמוכה", "owner": "", "treat_date": ""}, {"f": "דרום הר חברון- פני חבר", "t": "ביו-דיסק", "d": "2026-04-14", "text": "יש לשלוח הצעת מחיר למשאבת איזון חדשה", "s": "נשלחה הצעת מחיר", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": "2026-05-11"}, {"f": "דרום הר חברון- פני חבר", "t": "ביו-דיסק", "d": "2026-04-14", "text": "ולהחליף את הגנות המנוע של משאבות האיזון בהתאם", "s": "נשלחה הצעת מחיר", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": "2026-05-11"}, {"f": "דרום הר חברון- פני חבר", "t": "ביו-דיסק", "d": "2026-04-14", "text": "1.6-2.5 EATON", "s": "נשלחה הצעת מחיר", "tech": "itzik", "priority": "בינונית", "owner": "", "treat_date": "2026-05-11"}, {"f": "חיפה כימקלים", "t": "ביו-דיסק", "d": "2026-04-13", "text": "קידום החלפת מד PH", "s": "אושר ע\"י גורם מטפל", "tech": "itzik", "priority": "נמוכה", "owner": "", "treat_date": "2026-05-18"}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-03-31", "text": "שאיבה של מיכל ויסת", "s": "דרוש טיפול", "tech": "Ben", "priority": "בינונית", "owner": "Ben Solomon", "treat_date": ""}, {"f": "בית הערבה", "t": "ביו-דיסק", "d": "2026-03-25", "text": "להשלים קידוח כניסה חדשה לקולחים.", "s": "הועבר לגורם מטפל", "tech": "itzik", "priority": "נמוכה", "owner": "itzik bar david, Ben Solomon", "treat_date": "2026-03-26"}, {"f": "מעלה עמוס", "t": "ביו-דיסק", "d": "2026-03-17", "text": "לשלוח הצעת מחיר עבור החלפה של משאבת איזון", "s": "נשלחה הצעת מחיר", "tech": "Ben", "priority": "בינונית", "owner": "Ben Solomon, Gal Cohen", "treat_date": "2026-05-19"}, {"f": "אבנת", "t": "ביו-דיסק", "d": "2026-02-11", "text": "תכנון הגדלת מתקן והתקנת מצופי התרעה על גלישות באיזון ובאיגום", "s": "הועבר לגורם מטפל", "tech": "itzik", "priority": "בינונית", "owner": "Gal Cohen, Bar Peretz", "treat_date": "2026-03-26"}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-01-29", "text": "תכנות בקר מגוב לטובת הפעלה מרחוק", "s": "הועבר לגורם מטפל", "tech": "itzik", "priority": "נמוכה", "owner": "itzik bar david", "treat_date": "2026-03-26"}];
+const JC_METERS = [{"f": "אבנת", "t": "ביו-דיסק", "d": "2026-05-04", "m": "66.4", "mv": 66.4, "w": ""}, {"f": "אפרסמור", "t": "ביו-רובי", "d": "2026-05-13", "m": "4.8", "mv": 4.8, "w": ""}, {"f": "אשלים B", "t": "ביו-רובי", "d": "2026-05-04", "m": "1.0", "mv": 1.0, "w": ""}, {"f": "בית אריה", "t": "ביו-דיסק", "d": "2026-05-18", "m": "626.0", "mv": 626.0, "w": ""}, {"f": "בית אריזה- בית הערבה", "t": "ביו-רובי", "d": "2026-05-20", "m": "0.4", "mv": 0.4, "w": ""}, {"f": "בית חגי", "t": "ביו-דיסק", "d": "2026-05-26", "m": "50.7", "mv": 50.7, "w": ""}, {"f": "דור אלון- אורים", "t": "ביו-רובי", "d": "2026-05-27", "m": "3.6", "mv": 3.6, "w": ""}, {"f": "דור אלון- בני ציון", "t": "ביו-רובי", "d": "2026-02-16", "m": "27.8", "mv": 27.8, "w": ""}, {"f": "דור אלון- גן יבנה", "t": "ביו-דיסק", "d": "2026-03-23", "m": "1.0", "mv": 1.0, "w": ""}, {"f": "דור אלון- יובלים", "t": "ביו-רובי", "d": "2026-05-12", "m": "8.1", "mv": 8.1, "w": ""}, {"f": "דור אלון- מורן", "t": "ביו-רובי", "d": "2026-03-30", "m": "9.1", "mv": 9.1, "w": ""}, {"f": "דרום הר חברון- סוסיה", "t": "ביו-דיסק", "d": "2026-05-26", "m": "190.7", "mv": 190.7, "w": ""}, {"f": "דרום הר חברון- פני חבר", "t": "ביו-דיסק", "d": "2026-05-12", "m": "87.8", "mv": 87.8, "w": ""}, {"f": "הר עמשא", "t": "ביו-דיסק", "d": "2026-03-23", "m": "25.1", "mv": 25.1, "w": ""}, {"f": "חאן שער הגיא", "t": "ביו-דיסק", "d": "2026-05-13", "m": "0.2", "mv": 0.2, "w": ""}, {"f": "חוף קלי\"ה", "t": "ביו-רובי", "d": "2026-05-20", "m": "47.6", "mv": 47.6, "w": ""}, {"f": "חיפה כימקלים", "t": "ביו-דיסק", "d": "2026-05-20", "m": "38.9", "mv": 38.9, "w": ""}, {"f": "כיכר סדום", "t": "ביו-דיסק", "d": "2026-05-18", "m": "155.0", "mv": 155.0, "w": ""}, {"f": "מנחת בר יהודה", "t": "ביו-רובי", "d": "2026-05-18", "m": "0.6", "mv": 0.6, "w": ""}, {"f": "מעלה עמוס", "t": "ביו-דיסק", "d": "2026-05-12", "m": "20.7", "mv": 20.7, "w": ""}, {"f": "משואה", "t": "ביו-דיסק", "d": "2026-05-06", "m": "150.6", "mv": 150.6, "w": ""}, {"f": "ניר יצחק", "t": "ביו-דיסק", "d": "2026-05-27", "m": "306.2", "mv": 306.2, "w": ""}, {"f": "סונול- בית שקמה", "t": "ביו-רובי", "d": "2026-05-27", "m": "6.3", "mv": 6.3, "w": ""}, {"f": "סונול- עמודים", "t": "ביו-רובי", "d": "2026-05-25", "m": "4.2", "mv": 4.2, "w": ""}, {"f": "עבדת", "t": "ביו-רובי", "d": "2026-04-13", "m": "0.1", "mv": 0.1, "w": ""}, {"f": "עופרים", "t": "ביו-דיסק", "d": "2026-05-18", "m": "231.9", "mv": 231.9, "w": ""}, {"f": "פז- השקמה", "t": "ביו-רובי", "d": "2026-05-25", "m": "3.2", "mv": 3.2, "w": ""}, {"f": "פז- סילבר", "t": "ביו-רובי", "d": "2026-05-27", "m": "3.5", "mv": 3.5, "w": ""}, {"f": "צומת הלידו", "t": "ביו-רובי", "d": "2026-05-20", "m": "7.7", "mv": 7.7, "w": ""}, {"f": "צפע", "t": "ביו-רובי", "d": "2025-11-27", "m": "0.1", "mv": 0.1, "w": ""}, {"f": "קיבוץ אלמוג", "t": "קיבוץ אלמוג", "d": "2026-05-04", "m": "42.5", "mv": 42.5, "w": ""}, {"f": "רותם תעשיות", "t": "ביו-דיסק", "d": "2026-05-20", "m": "8.7", "mv": 8.7, "w": ""}, {"f": "שתיל נטו", "t": "ביו-רובי", "d": "2026-04-16", "m": "8.3", "mv": 8.3, "w": ""}];
+const BLADES_DATA = [{"n": "רפת יד מורדכי", "g": "ביו-רובי", "status": "מתקן לא פעיל", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "Ben", "overdue": false}, {"n": "אפרסמור", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "Ben", "overdue": false}, {"n": "אשלים B", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "itzik", "overdue": false}, {"n": "דור אלון- אורים", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.16", "tech": "Ben", "overdue": false}, {"n": "דור אלון- חוקוק", "g": "ביו-רובי", "status": "מתקן לא פעיל", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "itzik", "overdue": false}, {"n": "דור אלון- יובלים", "g": "ביו-רובי", "status": "מתקן לא פעיל", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "itzik", "overdue": false}, {"n": "דור אלון- מורן", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.4", "tech": "Ben", "overdue": false}, {"n": "מנחת בר יהודה", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "itzik", "overdue": false}, {"n": "סונול- עמודים", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.16", "tech": "itzik", "overdue": false}, {"n": "עבדת", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.16", "tech": "", "overdue": false}, {"n": "פז- השקמה", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.16", "tech": "itzik", "overdue": false}, {"n": "צומת הלידו", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.16", "tech": "itzik", "overdue": false}, {"n": "אקוסול", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "itzik", "overdue": false}, {"n": "אשלג סדום", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.16", "tech": "itzik", "overdue": false}, {"n": "בית אריזה בית - שדות נגב", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "Ben", "overdue": false}, {"n": "בית אריזה- בית הערבה", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.1", "tech": "itzik", "overdue": false}, {"n": "דור אלון- בני ציון", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.1", "tech": "Ben", "overdue": false}, {"n": "דור אלון- גני חוגה", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "itzik", "overdue": false}, {"n": "דור אלון- דבירה", "g": "ביו-רובי", "status": "מתקן לא פעיל", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "itzik", "overdue": false}, {"n": "דור אלון- זכרון יעקוב", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "Ben", "overdue": false}, {"n": "דור אלון- טל שחר", "g": "ביו-רובי", "status": "מתקן לא פעיל", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "itzik", "overdue": false}, {"n": "דור אלון- להב", "g": "ביו-רובי", "status": "מתקן לא פעיל", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "itzik", "overdue": false}, {"n": "דור אלון- נגבה", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "itzik", "overdue": false}, {"n": "דור אלון- צומת גנים", "g": "ביו-רובי", "status": "מתקן לא פעיל", "last_d": "", "next_check": "", "height": "", "type": "4.4", "tech": "Ben", "overdue": false}, {"n": "דור אלון- שימרון", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.4", "tech": "itzik", "overdue": false}, {"n": "חוף קלי\"ה", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "itzik", "overdue": false}, {"n": "חניון בארות", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "itzik", "overdue": false}, {"n": "ממשית", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "", "tech": "Ben", "overdue": false}, {"n": "מצדה — מדחס 2", "g": "מצדה", "status": "—", "last_d": "2025-12-30", "next_check": "2026-06-30", "height": "", "type": "", "tech": "Ben", "overdue": false}, {"n": "סונול- בית שקמה", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "Ben", "overdue": false}, {"n": "פז- סילבר", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.16", "tech": "Ben", "overdue": false}, {"n": "צפע", "g": "ביו-רובי", "status": "תקין", "last_d": "", "next_check": "", "height": "", "type": "4.8", "tech": "Ben", "overdue": false}, {"n": "שתיל נטו", "g": "ביו-רובי", "status": "תחזוקה שוטפת- הוחלף להבים", "last_d": "2026-05-14", "next_check": "2027-05-02", "height": "", "type": "4.8", "tech": "itzik", "overdue": false}];
+const BIOBIOT_DATA = [{"n": "הר עמשא", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "רפת יד מורדכי", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "אבנת", "g": "ביו-דיסק", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "אפרסמור", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "אשלים B", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "בית אריה", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "בית הערבה", "g": "ביו-דיסק", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "דור אלון- אורים", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- גן יבנה", "g": "ביו-דיסק", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "דור אלון- חוקוק", "g": "ביו-רובי", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "דור אלון- יובלים", "g": "ביו-רובי", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "דור אלון- מורן", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "כיכר סדום", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "מנחת בר יהודה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "סונול- עמודים", "g": "ביו-רובי", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "עבדת", "g": "ביו-רובי", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "ערוגות בושם", "g": "ביו-דיסק", "last_d": "", "last_s": "נדרשת שאיבה", "days_ago": null, "count": 0}, {"n": "פז- השקמה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "צומת הלידו", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "קיבוץ אלמוג", "g": "קיבוץ אלמוג", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "Incoming form answer", "g": "קיבוץ אלמוג", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "אקוסול", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "אשלג סדום", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "בית אריזה בית - שדות נגב", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "בית אריזה- בית הערבה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "בית חגי", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "גיתה", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "גני רמת הנדיב", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- בני ציון", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- גני חוגה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- דבירה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- זכרון יעקוב", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- טל שחר", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- להב", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- נגבה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- צומת גנים", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דור אלון- שימרון", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דרום הר חברון- סוסיה", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "דרום הר חברון- פני חבר", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "חאן שער הגיא", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "חוף קלי\"ה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "חיפה כימקלים", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "חניון בארות", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "ממשית", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "מעלה עמוס", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "מצדה", "g": "מצדה", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "משואה", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "נטועה", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "ניר יצחק", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "סונול- בית שקמה", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "עופרים", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "פז- סילבר", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "צובה", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "צפע", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "קיבוץ מגן", "g": "קיבוץ מגן", "last_d": "", "last_s": "", "days_ago": null, "count": 0}, {"n": "רותם אמפרט", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "רותם תעשיות", "g": "ביו-דיסק", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}, {"n": "שתיל נטו", "g": "ביו-רובי", "last_d": "", "last_s": "לא נדרש", "days_ago": null, "count": 0}];
+
+let doCI=null,flCI=null,curTab='facilities';
+
+function doColor(v){const n=parseFloat(v);if(!v||isNaN(n))return '';if(n===0)return 'do-zero';if(n<2)return 'do-low';return 'do-ok';}
+function isOverdue(d){if(!d)return false;return new Date(d)<new Date();}
+function dateCls(d){if(!d)return '';const diff=(new Date(d)-new Date())/864e5;if(diff<0)return 'style="color:#ff6b6b;font-weight:600"';if(diff<30)return 'style="color:#ffaa33"';return '';}
+function statusBadge(s){const m={'צריך להחליף':'badge-red','צריך לבדוק':'badge-orange','הוחלף':'badge-green','נבדק':'badge-blue','לא נדרש':'badge-grey','לא פעיל':'badge-grey','לא בשירות':'badge-grey'};return`<span class="badge ${m[s]||'badge-grey'}">${s||'—'}</span>`;}
+
+// ─── Service-round helpers ───
+const ROUND_BY_NAME=(()=>{const m={};FAC.forEach(f=>{m[f.n]=f.service_round||'';});return m;})();
+function roundOf(name){return ROUND_BY_NAME[name]||'(ללא סבב)';}
+function sortRounds(rounds){return rounds.slice().sort((a,b)=>{
+  if(a==='(ללא סבב)')return 1;if(b==='(ללא סבב)')return -1;
+  return a.localeCompare(b,'he');
+});}
+function groupByRound(rows,getName){
+  const g={};rows.forEach(r=>{const k=roundOf(getName(r));(g[k]=g[k]||[]).push(r);});
+  return sortRounds(Object.keys(g)).map(r=>({round:r,items:g[r]}));
+}
+function roundSectionHead(round,count,extraRight){
+  return `<div class="round-header" style="padding:8px 12px;background:#1e3350;border:1px solid #2a4060;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px">
+    <span style="font-weight:700;color:#7dd4ff;font-size:0.92rem">🗺️ ${round}</span>
+    <span style="color:#aac8e0;font-size:0.78rem">${count} ${extraRight||'פריטים'}</span>
+  </div>`;
+}
+function roundTableRow(round,colspan,count,label){
+  return `<tr style="background:linear-gradient(90deg,#0d1d30 0%,#1a2c44 50%,#0d1d30 100%);border-top:2px solid #2a5070">
+    <td colspan="${colspan}" style="padding:8px 14px;font-weight:700;color:#7dd4ff;font-size:0.92rem">
+      🗺️ ${round} <span style="color:#5a8aaa;font-weight:400;font-size:0.78rem">(${count} ${label||'פריטים'})</span>
+    </td></tr>`;
+}
+
+function switchTab(tab){
+  curTab=tab;
+  const ALL_TABS=['facilities','svc','alerts','monissues','meters','gears','blades','biobiot','viols'];
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',ALL_TABS[i]===tab);});
+  document.getElementById('fac-view').style.display=tab==='facilities'?'':'none';
+  document.getElementById('svc-view').style.display=tab==='svc'?'':'none';
+  document.getElementById('alerts-view').style.display=tab==='alerts'?'':'none';
+  document.getElementById('monissues-view').style.display=tab==='monissues'?'':'none';
+  document.getElementById('meters-view').style.display=tab==='meters'?'':'none';
+  document.getElementById('biobiot-view').style.display=tab==='biobiot'?'':'none';
+  document.getElementById('table-wrap').style.display=(tab!=='facilities'&&tab!=='svc'&&tab!=='alerts'&&tab!=='monissues'&&tab!=='meters'&&tab!=='biobiot')?'':'none';
+  renderTab();
+}
+
+function renderTab(){
+  const q=(document.getElementById('search').value||'').trim();
+  if(curTab==='facilities') renderFacilities(q);
+  else if(curTab==='svc'){renderSvcMonthBar();renderSvc(q);}
+  else if(curTab==='alerts') renderAlerts(q);
+  else if(curTab==='monissues') renderMonIssues(q);
+  else if(curTab==='meters') renderMeters(q);
+  else if(curTab==='gears') renderGears(q);
+  else if(curTab==='blades') renderBlades(q);
+  else if(curTab==='biobiot') renderBiobiot(q);
+  else if(curTab==='viols') renderViols(q);
+}
+
+function renderAlerts(q){
+  const filtered=OPEN_ALERTS.filter(a=>!q||a.facility.includes(q)||a.content.includes(q));
+  const crit=filtered.filter(a=>a.daysOpen>=2).length;
+  const warn=filtered.filter(a=>a.daysOpen===1).length;
+  const today=filtered.filter(a=>a.daysOpen===0).length;
+  document.getElementById('alerts-summary').innerHTML=
+    `<span style="color:#aac8e0;font-weight:600">${filtered.length} התראות פתוחות</span>
+     <span class="stat-badge sb-crit">🔴 ממושכות: ${crit}</span>
+     <span class="stat-badge sb-warn">🟡 אתמול: ${warn}</span>
+     <span class="stat-badge sb-ok">🟢 היום: ${today}</span>`;
+  if(!filtered.length){
+    document.getElementById('alerts-grid').innerHTML='<div class="no-alerts" style="grid-column:1/-1">✅ אין התראות פתוחות כרגע</div>';
+    return;
+  }
+  const renderCard=a=>{
+    let cls,badge,label;
+    if(a.daysOpen>=2){cls='days-2plus';badge='badge-days-crit';label=`🔴 ${a.daysOpen} ימים`;}
+    else if(a.daysOpen===1){cls='days-1';badge='badge-days-warn';label='🟡 אתמול';}
+    else{cls='days-0';badge='badge-days-today';label='🟢 היום';}
+    const roundBadge=a.service_round?`<span style="font-size:0.72rem;background:#1a3a5a;border:1px solid #2a5070;border-radius:10px;padding:1px 8px;color:#7dd4ff;margin-right:6px">🗺 ${a.service_round}</span>`:'';
+    const canonDisplay=a.canonical&&a.canonical!==a.facility?`<span style="font-size:0.72rem;color:#5a8aaa;margin-right:4px">(${a.canonical})</span>`:'';
+    return`<div class="alert-card ${cls}">
+      <div class="alert-facility">📍 ${a.facility}${canonDisplay}</div>
+      <div class="alert-content">⚠ ${a.content}</div>
+      <div class="alert-meta">
+        <span>${roundBadge}</span>
+        <span>פתוח מ: ${a.firstDate}</span>
+        <span class="alert-days-badge ${badge}">${label}</span>
+      </div>
+    </div>`;
+  };
+  // קיבוץ ישיר לפי service_round (לא דרך roundOf שמחפש שם קנוני)
+  const roundGroups={};
+  filtered.forEach(a=>{
+    const k=a.service_round||'(ללא סבב)';
+    (roundGroups[k]=roundGroups[k]||[]).push(a);
+  });
+  const sortedRounds=sortRounds(Object.keys(roundGroups));
+  document.getElementById('alerts-grid').innerHTML=sortedRounds.map(r=>
+    `<div style="grid-column:1/-1">${roundSectionHead(r,roundGroups[r].length,'התראות')}</div>`+
+    `<div style="grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px">${roundGroups[r].map(renderCard).join('')}</div>`
+  ).join('');
+}
+
+function renderFacilityCard(f){
+  const idx=FAC.indexOf(f);
+  const doHtml=f.do?`<span class="${doColor(f.do)}">${f.do} PPM</span>`:'<span style="color:#3a6080">—</span>';
+  const flowAvg=f.fh&&f.fh.length?(Math.round(f.fh.reduce((s,x)=>s+x.v,0)/f.fh.length*10)/10):null;
+  const issHtml=f.oi&&f.oi.length?`<div class="issues-preview">${f.oi.slice(0,2).map(x=>`<div>${x.substring(0,52)}</div>`).join('')}</div>`:'';
+  const tags=[];
+  if(f.gears&&f.gears.length){const g=f.gears[0];const bad=g.status==='צריך להחליף'||(g.next&&isOverdue(g.next));tags.push(`<span class="tag ${bad?'tag-gear-bad':'tag-gear-ok'}">⚙️ ${bad?'מגרזות – החלפה':'מגרזות ✓'}</span>`);}
+  if(f.blades&&f.blades.length){const b=f.blades[0];const bad=b.status==='צריך לבדוק'||(b.next&&isOverdue(b.next));tags.push(`<span class="tag ${bad?'tag-blade-bad':'tag-blade-ok'}">🔧 ${bad?'להבים – בדיקה':'להבים ✓'}</span>`);}
+  if(f.violations&&f.violations.length)tags.push(`<span class="tag tag-viol">🔬 חריגת דיגום</span>`);
+  if(f.sms&&f.sms.length)tags.push(`<span class="tag tag-sms">🚨 ${f.sms.length} התראות</span>`);
+  const tagsHtml=tags.length?`<div class="card-tags">${tags.join('')}</div>`:'';
+  const dlyHtml=f.dly?`<span class="${f.dly.ok?'dly-ok':'dly-no'}">${f.dly.ok?'✓ תקינות '+f.dly.time:'⚠ ללא תקינות'}</span>`:'';
+  return `<div class="card ${f.st}" onclick="openModal(${idx})">
+    <div class="card-header"><div class="card-name">${f.n}</div><span class="type-badge">${f.t}</span></div>
+    <div class="card-metrics">
+      <div class="metric"><div class="metric-label">DO</div><div class="metric-value">${doHtml}</div></div>
+      <div class="metric"><div class="metric-label">ספיקה ממוצעת</div><div class="metric-value" style="color:#44bbee">${flowAvg!==null?flowAvg+' מ"ק/י':'<span style="color:#3a6080">—</span>'}</div></div>
+    </div>${issHtml}${tagsHtml}
+    <div class="card-footer"><span>ביקור: ${f.lv||'—'}</span>${dlyHtml}</div>
+  </div>`;
+}
+
+function renderFacilities(q){
+  const filtered=FAC.filter(f=>!q||f.n.includes(q)||(f.service_round||'').includes(q));
+  const crit=filtered.filter(f=>f.st==='critical').length;
+  const warn=filtered.filter(f=>f.st==='warn').length;
+  const ok=filtered.filter(f=>f.st==='ok').length;
+  document.getElementById('stats').innerHTML=`${filtered.length} מתקנים &nbsp;|&nbsp;<span class="stat-badge sb-crit">⚠️ ${crit}</span><span class="stat-badge sb-warn">⚡ ${warn}</span><span class="stat-badge sb-ok">✅ ${ok}</span>`;
+  const groups={};
+  filtered.forEach(f=>{const r=f.service_round||'(ללא סבב)';if(!groups[r])groups[r]=[];groups[r].push(f);});
+  const sortedRounds=Object.keys(groups).sort((a,b)=>{
+    if(a==='(ללא סבב)')return 1;if(b==='(ללא סבב)')return -1;
+    return a.localeCompare(b,'he');
+  });
+  document.getElementById('grid').innerHTML=sortedRounds.map(r=>{
+    const items=groups[r].sort((a,b)=>{
+      const ord={'critical':0,'warn':1,'ok':2};
+      const oa=ord[a.st]??99,ob=ord[b.st]??99;
+      if(oa!==ob)return oa-ob;
+      return a.n.localeCompare(b.n,'he');
+    });
+    const cards=items.map(renderFacilityCard).join('');
+    return `<div class="round-section" style="grid-column:1/-1;margin-top:8px">
+      <div class="round-header" style="padding:6px 10px;background:#1e3350;border:1px solid #2a4060;border-radius:6px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-weight:700;color:#7dd4ff;font-size:0.88rem">🗺️ ${r}</span>
+        <span style="color:#aac8e0;font-size:0.78rem">${items.length} מתקנים</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px">${cards}</div>
+    </div>`;
+  }).join('');
+}
+
+function parseFreq(s){
+  if(!s||s==='ללא דיגום'||s==='—')return null;
+  if(s==='רבעוני')return 0.33;
+  const m=s.match(/(\d+)/);
+  return m?parseInt(m[1]):null;
+}
+function monthKey(d){
+  if(!d)return null;
+  const s=String(d).replace(' ','T');
+  const dt=new Date(s);
+  if(isNaN(dt))return null;
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+}
+function monthLabel(k){
+  if(!k)return '';
+  const [y,m]=k.split('-');
+  const names=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  return names[parseInt(m)-1]+' '+y;
+}
+function getAvailMonths(){
+  const s=new Set();
+  FAC.forEach(f=>{
+    (f.vh||[]).forEach(v=>{const k=monthKey(v.d);if(k)s.add(k);});
+    (f.sh||[]).forEach(v=>{const k=monthKey(v.d);if(k)s.add(k);});
+  });
+  return Array.from(s).sort().reverse().slice(0,8);
+}
+let _svcMonth=null;
+function renderSvcMonthBar(){
+  const months=getAvailMonths();
+  if(!_svcMonth&&months.length)_svcMonth=months[0];
+  const bar=document.getElementById('svc-month-bar');
+  bar.innerHTML=months.map(k=>`<button class="month-btn${k===_svcMonth?' active':''}" onclick="_svcMonth='${k}';renderSvcMonthBar();renderSvc(document.getElementById('search').value)">${monthLabel(k)}</button>`).join('');
+}
+function makePips(done,req,quarterly){
+  if(quarterly){
+    const ok=done>=1;
+    return`<span class="svc-pip ${ok?'svc-pip-ok':'svc-pip-miss'}"></span><small style="font-size:0.65rem;color:#7aacce"> רבעוני</small>`;
+  }
+  if(req===null||req===0)return`<span style="font-size:0.72rem;color:#5c7a96">—</span>`;
+  const pips=[];
+  for(let i=0;i<req;i++){
+    const cls=i<done?'svc-pip-ok':'svc-pip-empty';
+    pips.push(`<span class="svc-pip ${cls}"></span>`);
+  }
+  if(done>req)pips.push(`<span class="svc-pip svc-pip-ok" style="opacity:.5"></span>`);
+  return pips.join('');
+}
+function makeBar(done,req){
+  if(req===null||req===0)return'<span style="font-size:0.72rem;color:#5c7a96">—</span>';
+  const pct=Math.min(100,Math.round(done/req*100));
+  const cls=done>=req?'svc-bar-fill-ok':done>0?'svc-bar-fill-part':'svc-bar-fill-miss';
+  const lblCls=done>=req?'svc-ok':done>0?'svc-part':'svc-miss';
+  return`<div class="svc-bar-wrap"><div class="svc-bar-track"><div class="svc-bar-fill ${cls}" style="width:${pct}%"></div></div><span class="svc-bar-lbl ${lblCls}">${done}/${req}</span></div>`;
+}
+function renderResultsBadge(f){
+  const s=f.results_status||'';
+  const m=f.results_status_month||'';
+  if(!s)return'<span style="font-size:0.72rem;color:#5c7a96">—</span>';
+  let bg,fg,icon;
+  if(s==='התקבלו'){bg='#1f4a2e';fg='#7de0a4';icon='✓';}
+  else if(s==='טרם התקבלו'){bg='#5a3e10';fg='#ffc84a';icon='⏳';}
+  else if(s==='לא נדגם החודש'){bg='#5a3a1a';fg='#ffa860';icon='⊘';}
+  else if(s==='לא דוגמים'){bg='#3a2a2a';fg='#a08080';icon='—';}
+  else{bg='#2a3848';fg='#aac8e0';icon='?';}
+  let monthLbl='';
+  if(m){
+    const [y,mo]=m.split('-');
+    const heMonths=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+    monthLbl=`<div style="font-size:0.62rem;color:#5a8aaa;margin-top:2px">${heMonths[parseInt(mo)-1]} ${y}</div>`;
+  }
+  return`<span style="display:inline-block;padding:3px 8px;border-radius:10px;background:${bg};color:${fg};font-size:0.72rem;font-weight:600;white-space:nowrap">${icon} ${s}</span>${monthLbl}`;
+}
+function renderMiniGrid(f, months){
+  return months.slice(0,6).map(k=>{
+    const vDone=(f.vh||[]).filter(v=>monthKey(v.d)===k).length;
+    const sDone=(f.sh||[]).filter(v=>monthKey(v.d)===k).length;
+    const vReq=parseFreq(f.visit_freq);
+    const sReq=parseFreq(f.sample_freq);
+    let cls='mgc-none';
+    if(vReq!==null||sReq!==null){
+      const vOk=vReq===null||vDone>=vReq;
+      const sOk=sReq===null||sReq===0||sDone>=sReq;
+      if(vOk&&sOk)cls='mgc-ok';
+      else if(vDone>0||sDone>0)cls='mgc-part';
+      else cls='mgc-miss';
+    }
+    const [yr,mo]=k.split('-');
+    const mn=['י','פ','מ','א','מ','י','י','א','ס','א','נ','ד'][parseInt(mo)-1];
+    return`<div class="month-grid-cell ${cls}" title="${monthLabel(k)}: ביקורים ${vDone}, דיגומים ${sDone}">${mn}<span style="font-size:0.58rem">${yr.slice(2)}</span></div>`;
+  }).join('');
+}
+function renderSvc(q){
+  if(!_svcMonth){renderSvcMonthBar();}
+  const selM=_svcMonth;
+  const filtered=FAC.filter(f=>!q||f.n.includes(q)||(f.service_round||'').includes(q));
+  const allMonths=getAvailMonths();
+
+  // חשב סטטיסטיקות לחודש הנבחר
+  let okN=0,partN=0,missN=0;
+  filtered.forEach(f=>{
+    const vDone=(f.vh||[]).filter(v=>monthKey(v.d)===selM).length;
+    const sDone=(f.sh||[]).filter(v=>monthKey(v.d)===selM).length;
+    const vReq=parseFreq(f.visit_freq);
+    const sReq=parseFreq(f.sample_freq);
+    const vOk=vReq===null||vDone>=vReq;
+    const sOk=sReq===null||sReq===0||sDone>=sReq;
+    if(vOk&&sOk)okN++;
+    else if(vDone>0||sDone>0)partN++;
+    else missN++;
+  });
+  document.getElementById('stats').innerHTML=`${filtered.length} מתקנים &nbsp;|&nbsp;<span class="stat-badge sb-ok">✅ ${okN} הושלם</span><span class="stat-badge sb-warn">⚡ ${partN} חלקי</span><span class="stat-badge sb-crit">⚠️ ${missN} חסר</span>`;
+
+  const groups={};
+  filtered.forEach(f=>{const r=f.service_round||'(ללא סבב)';(groups[r]=groups[r]||[]).push(f);});
+  const sortedRounds=Object.keys(groups).sort((a,b)=>{if(a==='(ללא סבב)')return 1;if(b==='(ללא סבב)')return -1;return a.localeCompare(b,'he');});
+
+  const html=sortedRounds.map(r=>{
+    const items=groups[r];
+    let rOk=0,rPart=0,rMiss=0;
+    const rRows=items.map(f=>{
+      const idx=FAC.indexOf(f);
+      const vDone=(f.vh||[]).filter(v=>monthKey(v.d)===selM).length;
+      const sDone=(f.sh||[]).filter(v=>monthKey(v.d)===selM).length;
+      const vReq=parseFreq(f.visit_freq);
+      const sReq=parseFreq(f.sample_freq);
+      const quarterly=f.sample_freq==='רבעוני';
+      const vOk=vReq===null||vDone>=vReq;
+      const sOk=sReq===null||sReq===0||sDone>=sReq;
+      let rowSt;
+      if(vOk&&sOk){rowSt='ok';rOk++;}
+      else if(vDone>0||sDone>0){rowSt='part';rPart++;}
+      else{rowSt='miss';rMiss++;}
+      const rowBg=rowSt==='ok'?'#1a2f1a':rowSt==='part'?'#2a2510':'#2a1818';
+      const rowBdr=rowSt==='ok'?'#2e5a3a':rowSt==='part'?'#5a4a20':'#5a2020';
+      const lastV=(f.vh||[]).filter(v=>monthKey(v.d)===selM).slice(-1)[0];
+      return`<tr onclick="openModal(${idx})" style="cursor:pointer;background:${rowBg};border-bottom:1px solid ${rowBdr}">
+        <td style="padding:10px 12px">
+          <div style="font-weight:600;color:#c0d8f0;font-size:0.88rem">${f.n}</div>
+          <div style="font-size:0.7rem;color:#5a8aaa;margin-top:2px">${f.t}</div>
+        </td>
+        <td style="padding:10px 12px;min-width:110px">
+          <div style="font-size:0.68rem;color:#5a8aaa;margin-bottom:4px">ביקורים</div>
+          ${makeBar(vDone,vReq)}
+          <div style="margin-top:4px">${makePips(vDone,vReq??0,false)}</div>
+        </td>
+        <td style="padding:10px 12px;min-width:110px">
+          <div style="font-size:0.68rem;color:#5a8aaa;margin-bottom:4px">דיגומים</div>
+          ${makeBar(sDone,sReq!==null&&sReq<1?1:sReq)}
+          <div style="margin-top:4px">${makePips(sDone,sReq!==null&&sReq<1?1:sReq??0,quarterly)}</div>
+        </td>
+        <td style="padding:10px 12px;min-width:120px">
+          <div style="font-size:0.68rem;color:#5a8aaa;margin-bottom:4px">תוצאות דיגום</div>
+          ${renderResultsBadge(f)}
+        </td>
+        <td style="padding:10px 12px">
+          <div style="font-size:0.68rem;color:#5a8aaa;margin-bottom:4px">6 חודשים</div>
+          <div style="display:flex;gap:3px;flex-wrap:wrap">${renderMiniGrid(f,allMonths)}</div>
+        </td>
+        <td style="padding:10px 12px;color:#7aacce;font-size:0.78rem;white-space:nowrap">${lastV?lastV.d+(lastV.tech?'<br><span style="font-size:0.65rem;color:#4a7a9b">'+lastV.tech+'</span>':''):'—'}</td>
+      </tr>`;
+    }).join('');
+    const pct=Math.round(rOk/items.length*100);
+    const barW=pct+'%';
+    const barC=pct===100?'#66e09a':pct>0?'#ffc84a':'#ff5252';
+    return`<div style="margin-bottom:20px;background:#1a2a3c;border:1px solid #2a4060;border-radius:10px;overflow:hidden">
+      <div style="padding:10px 16px;background:#1e3350;border-bottom:1px solid #2a4060">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:700;color:#7dd4ff;font-size:0.95rem">🗺️ ${r}</div>
+          <div style="font-size:0.78rem;color:#aac8e0">${rOk}/${items.length} הושלם &nbsp; <span style="color:#ffc84a">${rPart} חלקי</span> &nbsp; <span style="color:#ff8a80">${rMiss} חסר</span></div>
+        </div>
+        <div style="height:6px;background:#0f1e2e;border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${barW};background:${barC};border-radius:3px;transition:width .4s"></div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#182838;border-bottom:1px solid #2a4060">
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">מתקן</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">ביקורים</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">דיגומים</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">תוצאות דיגום</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">היסטוריה</th>
+          <th style="padding:8px 12px;text-align:right;color:#5a8aaa;font-size:0.75rem;font-weight:500">ביקור אחרון</th>
+        </tr></thead>
+        <tbody>${rRows}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+  document.getElementById('svc-rounds').innerHTML=html;
+}
+function renderGears(q){
+  const rows=FAC.filter(f=>f.gears&&f.gears.length).flatMap(f=>f.gears.map(g=>Object.assign({fac:f.n},g))).filter(r=>!q||r.fac.includes(q)||r.n.includes(q));
+  document.getElementById('stats').innerHTML=`${rows.length} רשומות | מגרזות/משמנות`;
+  document.getElementById('table-head').innerHTML=`<tr><th>מתקן</th><th>פריט</th><th>סטטוס</th><th>החלפה אחרונה</th><th>החלפה הבאה</th><th>כמות</th><th>חשבון</th></tr>`;
+  const renderRow=r=>`<tr style="${isOverdue(r.next)&&r.status!=='הוחלף'?'background:#1a0808':''}">
+    <td style="font-weight:600;color:#e8f4ff">${r.fac}</td><td style="color:#aac8e0">${r.n}</td>
+    <td>${statusBadge(r.status)}</td><td style="font-size:0.8rem">${r.last||'—'}</td>
+    <td ${dateCls(r.next)} style="font-size:0.8rem">${r.next||'—'}</td>
+    <td style="font-size:0.8rem;color:#aac8e0">${r.qty||'—'}</td>
+    <td><span class="badge ${r.account==='ט.ל.'?'badge-blue':'badge-grey'}">${r.account||''}</span></td>
+  </tr>`;
+  const grouped=groupByRound(rows,r=>r.fac);
+  document.getElementById('table-body').innerHTML=grouped.map(g=>
+    roundTableRow(g.round,7,g.items.length,'רשומות')+g.items.map(renderRow).join('')
+  ).join('');
+}
+
+function renderBlades(q){
+  const rows=BLADES_DATA.filter(r=>!q||r.n.includes(q)||r.g.includes(q));
+  const needsCheck=rows.filter(r=>r.status==='צריך לבדוק'||r.status==='נבדק').length;
+  document.getElementById('stats').innerHTML=`${rows.length} מדחסים | ${needsCheck} לבדיקה`;
+  document.getElementById('table-head').innerHTML=`<tr><th>מתקן/מדחס</th><th>אזור</th><th>סטטוס</th><th>החלפה אחרונה</th><th>בדיקה הבאה</th><th>גובה להב</th><th>סוג</th></tr>`;
+  const renderRow=r=>`<tr style="${r.overdue&&r.status==='צריך לבדוק'?'background:#1a0808':''}">
+    <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
+    <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
+    <td>${statusBadge(r.status)}</td>
+    <td style="font-size:0.8rem">${r.last_d||'—'}</td>
+    <td ${dateCls(r.next_check)} style="font-size:0.8rem">${r.next_check||'—'}</td>
+    <td style="font-size:0.8rem;color:#aac8e0">${r.height||'—'} mm</td>
+    <td style="font-size:0.8rem;color:#aac8e0">${r.type||'—'}</td>
+  </tr>`;
+  const grouped=groupByRound(rows,r=>r.n);
+  document.getElementById('table-body').innerHTML=grouped.map(g=>
+    roundTableRow(g.round,7,g.items.length,'מדחסים')+g.items.map(renderRow).join('')
+  ).join('');
+}
+
+function renderBiobiot(q){
+  const rows=BIOBIOT_DATA.filter(r=>!q||r.n.includes(q)||r.g.includes(q));
+  const withData=rows.filter(r=>r.last_d).length;
+  document.getElementById('biobiot-stats').innerHTML=`${rows.length} מתקנים | ${withData} עם נתוני שאיבה`;
+  document.getElementById('biobiot-head').innerHTML=`<tr><th>מתקן</th><th>אזור</th><th>שאיבה אחרונה</th><th>סטטוס</th><th>ימים מאז</th><th>מס' שאיבות</th></tr>`;
+  const renderRow=r=>{
+    const daysAgo=r.days_ago;
+    const daysStyle=daysAgo===null?'color:#555':daysAgo>365?'color:#ff6b6b;font-weight:600':daysAgo>180?'color:#ffa066':'color:#7ec8a0';
+    const daysText=daysAgo===null?'—':`${daysAgo} ימים`;
+    return `<tr>
+      <td style="font-weight:600;color:#e8f4ff">${r.n}</td>
+      <td style="color:#8ab0d0;font-size:0.8rem">${r.g}</td>
+      <td style="font-size:0.8rem">${r.last_d||'—'}</td>
+      <td>${r.last_s?`<span class="status-pill" style="background:#2a5a2a;color:#7ec8a0;padding:2px 8px;border-radius:10px;font-size:0.75rem">${r.last_s}</span>`:'<span style="color:#444">—</span>'}</td>
+      <td style="font-size:0.9rem;${daysStyle}">${daysText}</td>
+      <td style="text-align:center;color:#aac8e0">${r.count||0}</td>
+    </tr>`;
+  };
+  const grouped=groupByRound(rows,r=>r.n);
+  document.getElementById('biobiot-body').innerHTML=grouped.map(g=>
+    roundTableRow(g.round,6,g.items.length,'מתקנים')+g.items.map(renderRow).join('')
+  ).join('');
+}
+
+function renderViols(q){
+  // Flatten + filter (search by facility, params text, or month)
+  const rows=FAC.filter(f=>f.violations&&f.violations.length)
+    .flatMap(f=>f.violations.map(v=>Object.assign({fac:f.n,t:f.t},v)))
+    .filter(r=>!q||r.fac.includes(q)||(r.params||'').includes(q)||(r.month||'').includes(q));
+  // Sort: newest month first, then facility
+  rows.sort((a,b)=>{const ya=a.yr||0,yb=b.yr||0,ma=a.mn||0,mb=b.mn||0;
+    if(yb!==ya)return yb-ya; if(mb!==ma)return mb-ma; return a.fac.localeCompare(b.fac,'he');});
+
+  // Stats by month + status
+  const byMonth={}; rows.forEach(r=>{const k=r.month||'ללא תאריך';byMonth[k]=(byMonth[k]||0)+1;});
+  const monthBadges=Object.entries(byMonth).map(([m,c])=>
+    `<span style="background:#1f3552;color:#7dd4ff;padding:3px 10px;border-radius:12px;margin-left:6px;font-size:0.75rem">${m}: <b>${c}</b></span>`
+  ).join('');
+  const sentCount=rows.filter(r=>r.status&&r.status.includes('נשלח')).length;
+  const pendingCount=rows.filter(r=>!r.status||r.status==='לא נשלח'||r.status.includes('טרם')).length;
+  document.getElementById('stats').innerHTML=
+    `<span style="font-weight:600;color:#ff99cc">🔬 ${rows.length} חריגות</span>`+
+    `&nbsp;<span class="stat-badge sb-warn">⏳ ${pendingCount} ממתינות</span>`+
+    `<span class="stat-badge sb-ok">✅ ${sentCount} נשלחו</span>`+
+    `&nbsp;${monthBadges}`;
+
+  // Param pill renderer — color by parameter type
+  const paramColor=p=>{
+    const px=(p||'').toUpperCase();
+    if(px.includes('BOD'))return ['#ff6b6b','#3a1a1a'];
+    if(px.includes('COD'))return ['#ff9966','#3a2818'];
+    if(px.includes('TSS'))return ['#ffcc66','#3a3018'];
+    if(px.includes('קוליפורמ'))return ['#ff66cc','#3a1830'];
+    if(px.includes('חנקן')||px.includes('N '))return ['#66cccc','#183838'];
+    if(px.includes('מוליכות')||px.includes('EC'))return ['#9999ff','#1f1f3a'];
+    return ['#aac8e0','#1c2840'];
+  };
+
+  // Status badge color
+  const statusBg=s=>{
+    if(!s||s==='לא נשלח')return ['#ff6b6b','#3a1818'];
+    if(s.includes('טרם'))return ['#ffaa33','#3a2818'];
+    if(s.includes('נשלח למשרד'))return ['#7ec8a0','#1a3a28'];
+    if(s.includes('נשלח ללקוח'))return ['#5bc4ff','#18304a'];
+    return ['#aac8e0','#1c2840'];
+  };
+
+  // Group by service round; within each round, sort by newest month first
+  document.getElementById('table-head').innerHTML=
+    `<tr><th style="width:18%">מתקן</th><th style="width:12%">חודש</th><th style="width:38%">פרמטרים בחריגה</th><th style="width:18%">סטטוס</th><th>הערות</th></tr>`;
+
+  if(!rows.length){
+    document.getElementById('table-body').innerHTML='<tr><td colspan="5" class="no-data">אין חריגות</td></tr>';
+    return;
+  }
+
+  const renderRow=r=>{
+    const tColor=r.t==='ביו-דיסק'?'#7dd4ff':'#66e09a';
+    const [sFg,sBg]=statusBg(r.status);
+    const params=(r.plist&&r.plist.length)?r.plist.map(p=>{
+      const [fg,bg]=paramColor(p.p);
+      return `<span style="display:inline-block;background:${bg};color:${fg};padding:3px 9px;border-radius:14px;margin:2px 3px;font-size:0.78rem;font-weight:600;border:1px solid ${fg}40">
+        ${p.p}${p.v?'<span style="opacity:.65;margin-right:4px;font-weight:400">'+p.v+'</span>':''}
+      </span>`;
+    }).join(''):`<span style="color:#5a8aaa;font-size:0.78rem">${r.params||'—'}</span>`;
+    return `<tr>
+      <td style="font-weight:600;color:#e8f4ff">${r.fac}<div style="font-size:0.7rem;color:${tColor};margin-top:1px">${r.t||''}</div></td>
+      <td style="color:#7dd4ff;font-size:0.78rem;white-space:nowrap">${r.month||'—'}<div style="font-size:0.65rem;color:#5a8aaa;margin-top:2px">${r.created||''}</div></td>
+      <td style="line-height:1.7">${params}</td>
+      <td><span style="display:inline-block;background:${sBg};color:${sFg};padding:4px 10px;border-radius:14px;font-size:0.76rem;border:1px solid ${sFg}50">
+        ${r.status||'⏳ ממתין'}
+      </span></td>
+      <td style="color:#aac8e0;font-size:0.76rem">${r.notes||'—'}<div style="font-size:0.65rem;color:#5a8aaa;margin-top:1px">${r.tech||''}</div></td>
+    </tr>`;
+  };
+  const grouped=groupByRound(rows,r=>r.fac);
+  // already sorted (rows): newest month first, then facility; preserve in each round
+  document.getElementById('table-body').innerHTML=grouped.map(g=>
+    roundTableRow(g.round,5,g.items.length,'חריגות')+g.items.map(renderRow).join('')
+  ).join('');
+}
+
+function renderMonIssues(q){
+  const filtered=JC_ISSUES.filter(i=>!q||i.f.includes(q)||i.text.includes(q));
+  const urgent=filtered.filter(i=>i.s==='דרוש טיפול').length;
+  const referred=filtered.filter(i=>i.s==='הועבר לגורם מטפל').length;
+  const price=filtered.filter(i=>i.s==='נשלחה הצעת מחיר').length;
+  document.getElementById('stats').innerHTML=`${filtered.length} נושאים פתוחים &nbsp;|&nbsp;<span class="stat-badge sb-crit">🔴 דרוש טיפול: ${urgent}</span><span class="stat-badge sb-warn">🟡 הועבר: ${referred}</span><span class="stat-badge sb-ok">💰 הצעת מחיר: ${price}</span>`;
+  document.getElementById('jc-issues-header').innerHTML=
+    `<span style="color:#aac8e0;font-weight:600">📋 נושאים לטיפול — מאנדיי (ז'אן קלוד)</span>
+     <span class="stat-badge sb-crit">🔴 ${urgent} דרוש טיפול</span>
+     <span class="stat-badge sb-warn">🟡 ${referred} הועבר</span>
+     <span class="stat-badge sb-ok">💰 ${price} הצעות מחיר</span>`;
+  document.getElementById('jc-issues-head').innerHTML=`<tr><th>מתקן</th><th>סוג</th><th>נושא לטיפול</th><th>סטטוס</th><th>דחיפות</th><th>אחראי טיפול</th><th>תאריך טיפול</th><th>טכנאי</th><th>תאריך</th></tr>`;
+  const statusCls={'דרוש טיפול':'sp-urgent','הועבר לגורם מטפל':'sp-refer','נשלחה הצעת מחיר':'sp-price','אושר ע"י גורם מטפל':'sp-other'};
+  const priColors={'גבוהה':'#ff6b6b','גבוה':'#ff6b6b','דחוף':'#ff6b6b','בינונית':'#ffaa33','בינוני':'#ffaa33','נמוכה':'#7ec8a0','נמוך':'#7ec8a0'};
+  const renderRow=i=>`<tr>
+        <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${i.f}</td>
+        <td><span style="font-size:0.7rem;color:${i.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${i.t}</span></td>
+        <td style="max-width:340px;line-height:1.45;color:#d0e4f5">${i.text}</td>
+        <td><span class="status-pill ${statusCls[i.s]||'sp-other'}">${i.s}</span></td>
+        <td style="font-size:0.78rem;color:${priColors[i.priority]||'#888'}">${i.priority||'—'}</td>
+        <td style="color:#aac8e0;font-size:0.78rem">${i.owner||'—'}</td>
+        <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${i.treat_date||'—'}</td>
+        <td style="color:#7a9abb;font-size:0.78rem">${i.tech||'—'}</td>
+        <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${i.d||'—'}</td>
+      </tr>`;
+  if(!filtered.length){
+    document.getElementById('jc-issues-body').innerHTML='<tr><td colspan="9" class="no-data">אין נושאים פתוחים</td></tr>';
+    return;
+  }
+  const grouped=groupByRound(filtered,i=>i.f);
+  document.getElementById('jc-issues-body').innerHTML=grouped.map(g=>
+    roundTableRow(g.round,9,g.items.length,'נושאים')+g.items.map(renderRow).join('')
+  ).join('');
+}
+
+function renderMeters(q){
+  const filtered=JC_METERS.filter(m=>!q||m.f.includes(q));
+  const maxMv=Math.max(...filtered.map(m=>m.mv),1);
+  document.getElementById('stats').innerHTML=`${filtered.length} מתקנים | מדי ספיקה קולחים`;
+  document.getElementById('jc-meters-header').innerHTML=
+    `<span style="color:#aac8e0;font-weight:600">💧 מדי ספיקה קולחים (מ"ק מצטבר) — ז'אן קלוד</span>
+     <span style="color:#5a8aaa">${filtered.length} מתקנים עם קריאות</span>`;
+  document.getElementById('jc-meters-head').innerHTML=`<tr><th>מתקן</th><th>סוג</th><th>קריאה מצטברת (מ"ק)</th><th>גרף יחסי</th><th>טכנאי</th><th>תאריך קריאה</th></tr>`;
+  const sorted=[...filtered].sort((a,b)=>b.mv-a.mv);
+  if(!sorted.length){
+    document.getElementById('jc-meters-body').innerHTML='<tr><td colspan="6" class="no-data">אין נתוני מד ספיקה</td></tr>';
+    return;
+  }
+  const renderRow=m=>{
+    const pct=Math.round((m.mv/maxMv)*180);
+    const mv=parseFloat(m.m.replace(',','')).toLocaleString('he-IL');
+    return`<tr>
+      <td style="font-weight:600;color:#e8f4ff;white-space:nowrap">${m.f}</td>
+      <td><span style="font-size:0.7rem;color:${m.t==='ביו-דיסק'?'#7dd4ff':'#66e09a'}">${m.t}</span></td>
+      <td class="meter-ok">${mv}</td>
+      <td><span class="meter-bar" style="width:${pct}px"></span></td>
+      <td style="color:#7a9abb;font-size:0.78rem">${m.w||'—'}</td>
+      <td style="color:#5a8aaa;font-size:0.78rem;white-space:nowrap">${m.d||'—'}</td>
+    </tr>`;
+  };
+  const grouped=groupByRound(sorted,m=>m.f);
+  document.getElementById('jc-meters-body').innerHTML=grouped.map(g=>
+    roundTableRow(g.round,6,g.items.length,'מתקנים')+g.items.map(renderRow).join('')
+  ).join('');
+}
+
+function openModal(idx){
+  const f=FAC[idx];
+  document.getElementById('modal-title').textContent=f.n;
+  document.getElementById('modal-subtitle').textContent=f.t+' | ביקור אחרון: '+(f.lv||'—')+' ('+(f.lt||'—')+')';
+
+  // Daily status
+  const dlyEl=document.getElementById('modal-daily');
+  if(dlyEl){
+    if(f.dly){
+      dlyEl.innerHTML=f.dly.ok
+        ?`<span class="dly-ok" style="font-size:0.8rem;padding:3px 10px">✓ תקינות יומית נשלחה ${f.dly.time}</span>`
+        :`<span class="dly-no" style="font-size:0.8rem;padding:3px 10px">⚠ לא התקבלה תקינות יומית</span>`;
+    } else dlyEl.innerHTML='';
+  }
+
+  // Metrics
+  const flowAvg=f.fh&&f.fh.length?(Math.round(f.fh.reduce((s,x)=>s+x.v,0)/f.fh.length*10)/10):null;
+  document.getElementById('modal-metrics').innerHTML=`
+    <div class="metric-big"><div class="label">DO (PPM)</div><div class="value ${doColor(f.do)}">${f.do||'—'}</div></div>
+    <div class="metric-big"><div class="label">ספיקה ממוצעת</div><div class="value" style="color:#44bbee">${flowAvg!==null?flowAvg+' מ"ק/י':'—'}</div></div>
+    <div class="metric-big"><div class="label">נושאים לטיפול</div><div class="value" style="font-size:0.88rem;color:${f.oi&&f.oi.length?'#ffaa33':'#44cc88'}">${f.is||'לא נדרש'}</div></div>
+    <div class="metric-big"><div class="label">שאיבה</div><div class="value" style="font-size:0.82rem;color:#aac8e0">${f.ps||'—'}</div></div>`;
+
+  // DO chart
+  if(doCI){doCI.destroy();doCI=null;}
+  if(f.dh&&f.dh.length){
+    doCI=new Chart(document.getElementById('doChart'),{type:'line',data:{labels:f.dh.map(d=>d.d),datasets:[{data:f.dh.map(d=>d.v),borderColor:'#4cde8a',backgroundColor:'rgba(76,222,138,.12)',tension:.3,pointRadius:3,fill:true}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'}}},animation:{duration:400}}});
+  } else document.getElementById('doChart').getContext('2d').clearRect(0,0,999,999);
+
+  // Flow chart
+  if(flCI){flCI.destroy();flCI=null;}
+  if(f.fh&&f.fh.length){
+    flCI=new Chart(document.getElementById('flChart'),{type:'bar',data:{labels:f.fh.map(d=>d.d),datasets:[{data:f.fh.map(d=>d.v),backgroundColor:'rgba(125,212,255,.25)',borderColor:'#7dd4ff',borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a8aaa',font:{size:9}},grid:{color:'#1e3248'}},y:{ticks:{color:'#5a8aaa'},grid:{color:'#2a4565'}}},animation:{duration:400}}});
+  }
+
+  // Gears
+  const gearsSec=document.getElementById('gears-section');
+  if(f.gears&&f.gears.length){
+    gearsSec.style.display='block';
+    document.getElementById('modal-gears').innerHTML=f.gears.map(g=>`
+      <div class="gear-row">
+        <span style="color:#aac8e0">${g.n}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${statusBadge(g.status)}
+          <span style="font-size:0.72rem;color:#4a7a9b">החלפה הבאה: ${g.next||'—'}</span>
+          <span style="font-size:0.72rem;color:#3a6080">${g.qty||''}</span>
+        </div>
+      </div>`).join('');
+  } else gearsSec.style.display='none';
+
+  // Blades
+  const bladesSec=document.getElementById('blades-section');
+  if(f.blades&&f.blades.length){
+    bladesSec.style.display='block';
+    document.getElementById('modal-blades').innerHTML=f.blades.map(b=>`
+      <div class="blade-row" style="display:flex;align-items:center;justify-content:space-between">
+        <span style="color:#aac8e0;font-size:0.78rem">${b.n}</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${statusBadge(b.status)}
+          <span style="font-size:0.72rem;color:#4a7a9b">בדיקה הבאה: ${b.next||'—'}</span>
+          <span style="font-size:0.72rem;color:#3a6080">גובה: ${b.height||'—'}</span>
+        </div>
+      </div>`).join('');
+  } else bladesSec.style.display='none';
+
+  // Violations
+  const violSec=document.getElementById('violations-section');
+  if(f.violations&&f.violations.length){
+    violSec.style.display='block';
+    document.getElementById('modal-violations').innerHTML=f.violations.map(v=>`
+      <div style="background:#081420;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:0.82rem">
+        <span style="font-size:0.85rem;color:#ff99cc;font-weight:600">${v.params}</span>
+        <span style="float:left"><span class="badge ${v.status==='לא נשלח'?'badge-red':'badge-orange'}">${v.status}</span></span>
+      </div>`).join('');
+  } else violSec.style.display='none';
+
+  // Open issues
+  const issSec=document.getElementById('issues-section');
+  const issData=(f.all_issues&&f.all_issues.length)?f.all_issues:(f.oi&&f.oi.length?f.oi.map(i=>{return{text:i,d:'',status:'',tech:''}}):[]);
+  if(issData.length){
+    issSec.style.display='block';
+    document.getElementById('issues-count').textContent='('+issData.length+')';
+    const statusColors={'דרוש טיפול':'#ff6b6b','הועבר לגורם מטפל':'#ffaa33','נשלחה הצעת מחיר':'#5bc4ff','אושר ע"י גורם מטפל':'#44cc88','':'#aac8e0'};
+    document.getElementById('modal-issues').innerHTML=issData.map(i=>{
+      const sc=statusColors[i.status]||'#aac8e0';
+      return `<div class="open-issue" style="border-right-color:${sc}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <span>🔧 ${i.text||i}</span>
+          ${i.status?`<span style="font-size:0.72rem;color:${sc};white-space:nowrap;padding-top:1px">${i.status}</span>`:''}
+        </div>
+        ${i.d?`<div style="font-size:0.7rem;color:#4a7a9b;margin-top:2px">${i.d} · ${i.tech||''}</div>`:''}
+      </div>`;
+    }).join('');
+  } else issSec.style.display='none';
+
+  // SMS alerts
+  const smsSec=document.getElementById('sms-section');
+  if(f.sms&&f.sms.length){
+    smsSec.style.display='block';
+    document.getElementById('sms-count').textContent='('+f.sms.length+')';
+    document.getElementById('modal-sms').innerHTML=f.sms.map(a=>`
+      <div class="sms-alert">
+        <div class="sms-alert-content">⚠ ${a.content}</div>
+        <div class="sms-alert-time">🕐 ${a.time}</div>
+      </div>`).join('');
+  } else smsSec.style.display='none';
+
+  // Visits
+  const tbody=document.getElementById('modal-visits');
+  if(f.vh&&f.vh.length){
+    tbody.innerHTML=f.vh.map(v=>{const cls=v.type==='שיגרתי'?'tag-routine':v.type==='חירום'?'tag-urgent':'tag-other';return`<tr><td>${v.d}</td><td>${v.tech}</td><td class="${cls}">${v.type||'—'}</td></tr>`;}).join('');
+  } else tbody.innerHTML='<tr><td colspan="3" style="color:#3a6080;text-align:center">אין היסטוריה</td></tr>';
+
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+  if(doCI){doCI.destroy();doCI=null;} if(flCI){flCI.destroy();flCI=null;}
+}
+document.getElementById('overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+renderTab();
+</script>
+</body>
+</html>
