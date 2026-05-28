@@ -144,8 +144,8 @@
     "biobiot_order": "מיכל איסוף בוצה",
     "is": "נשלחה הצעת מחיר",
     "oi": [
-      "הצעת מחיר להתקנת 2 מצופי התראה כולל קוי פיקוד וחיווט חדש.",
-      "תכנון הגדלת מתקן והתקנת מצופי התרעה על גלישות באיזון ובאיגום"
+      "תכנון הגדלת מתקן והתקנת מצופי התרעה על גלישות באיזון ובאיגום",
+      "הצעת מחיר להתקנת 2 מצופי התראה כולל קוי פיקוד וחיווט חדש."
     ],
     "dh": [
       {
@@ -916,8 +916,8 @@
     "biobiot_order": "מיכל איסוף בוצה",
     "is": "לא נדרש",
     "oi": [
-      "החלפת מערך קולחים",
-      "להשלים קידוח כניסה חדשה לקולחים."
+      "להשלים קידוח כניסה חדשה לקולחים.",
+      "החלפת מערך קולחים"
     ],
     "dh": [
       {
@@ -1246,7 +1246,7 @@
     ],
     "st": "warn",
     "service_round": "עוטף ישראל דרומי",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -1334,9 +1334,9 @@
     "biobiot_order": "-",
     "is": "דרוש טיפול",
     "oi": [
+      "לספק מיכל כלור פעם הבא",
       "ביובית לשאיבה מפריד שומנים",
-      "הצעה וקידום החלפת לוחות סינון במסנן המסתובב",
-      "לספק מיכל כלור פעם הבא"
+      "הצעה וקידום החלפת לוחות סינון במסנן המסתובב"
     ],
     "dh": [
       {
@@ -1603,7 +1603,7 @@
     ],
     "st": "warn",
     "service_round": "צפון מזרחי",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -1698,7 +1698,7 @@
     "sh": [],
     "st": "warn",
     "service_round": "צפון מערבי",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -1789,7 +1789,7 @@
     ],
     "st": "warn",
     "service_round": "צפון מזרחי",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -4113,8 +4113,8 @@
     "biobiot_order": "",
     "is": "לא נדרש",
     "oi": [
-      "תכנות בקר מגוב לטובת הפעלה מרחוק",
       "יש לתאם עם עידן ממוזס תכנות בקר ולהשיג כבל מתאים",
+      "תכנות בקר מגוב לטובת הפעלה מרחוק",
       "שאיבה של מיכל ויסת"
     ],
     "dh": [
@@ -4299,9 +4299,9 @@
     "biobiot_order": "",
     "is": "דרוש טיפול",
     "oi": [
-      "למנוע גיר",
+      "הצעות מחיר:",
       "ומיכל איסוף בוצה",
-      "הצעות מחיר:"
+      "למנוע גיר"
     ],
     "dh": [
       {
@@ -4644,7 +4644,7 @@
     ],
     "st": "ok",
     "service_round": "מרכז",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -4730,7 +4730,7 @@
     ],
     "st": "ok",
     "service_round": "צפון מזרחי",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -4831,7 +4831,7 @@
     ],
     "st": "ok",
     "service_round": "צפון הנגב",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -4922,7 +4922,7 @@
     ],
     "st": "ok",
     "service_round": "צפון מערבי",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -4997,7 +4997,7 @@
     "st": "ok",
     "service_round": "מרכז",
     "visit_freq": "2 בחודש",
-    "sample_freq": "1 בחודש",
+    "sample_freq": "1 ברבעון",
     "results_status": "",
     "results_status_month": "",
     "gears": [],
@@ -5097,7 +5097,7 @@
     ],
     "st": "ok",
     "service_round": "צפון הנגב",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -5241,7 +5241,7 @@
     ],
     "st": "ok",
     "service_round": "עוטף ישראל צפוני",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -5335,7 +5335,7 @@
     ],
     "st": "ok",
     "service_round": "מרכז",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -5431,7 +5431,7 @@
     ],
     "st": "ok",
     "service_round": "צפון מערבי",
-    "visit_freq": "2 בחודש",
+    "visit_freq": "1 בחודש",
     "sample_freq": "1 בחודש",
     "results_status": "",
     "results_status_month": "",
@@ -5588,8 +5588,8 @@
     "biobiot_order": "",
     "is": "לא נדרש",
     "oi": [
-      "1.6-2.5 EATON",
       "ולהחליף את הגנות המנוע של משאבות האיזון בהתאם",
+      "1.6-2.5 EATON",
       "יש לשלוח הצעת מחיר למשאבת איזון חדשה"
     ],
     "dh": [],
